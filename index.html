@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>GEETECH DRIVE — Mzansi Edition V1.0</title>
+  <title>GEETECH DRIVE — Mzansi Edition V1.2</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -71,6 +71,13 @@
       display: block;
       width: 100%;
       height: 100%;
+    }
+
+    /* Enable native vertical touch scrolling for Garage & Missions lists on mobile */
+    .scrollable-panel,
+    .scrollable-panel * {
+      touch-action: pan-y !important;
+      -webkit-overflow-scrolling: touch;
     }
 
     #speed-lines {
@@ -204,6 +211,9 @@
           <div id="zone-badge" class="hud-pill rounded-full px-2.5 py-0.5 text-[10px] font-display font-bold uppercase tracking-wider text-cyan-300">
             JOBURG
           </div>
+          <div id="weather-badge" class="hidden hud-pill rounded-full px-2.5 py-0.5 text-[10px] font-display font-bold uppercase tracking-wider text-sky-300 border border-sky-400">
+            🌧️ STORM
+          </div>
           <div id="blackout-badge" class="hidden hud-pill blackout-badge rounded-full px-2.5 py-0.5 text-[10px] font-display font-black uppercase tracking-wider text-amber-300 bg-amber-950/80">
             ⚡ STAGE 4
           </div>
@@ -285,10 +295,10 @@
         </div>
         <h1 class="font-display text-3xl sm:text-4xl font-black tracking-tight text-white drop-shadow-[0_4px_20px_rgba(0,243,255,0.45)] leading-none">
           GEETECH<br/>
-          <span class="bg-gradient-to-r from-cyan-300 via-sky-400 to-pink-500 bg-clip-text text-transparent">DRIVE V1.0</span>
+          <span class="bg-gradient-to-r from-cyan-300 via-sky-400 to-pink-500 bg-clip-text text-transparent">DRIVE V1.2</span>
         </h1>
         <p class="text-slate-300 text-xs font-medium mt-1 tracking-wide">
-          A gift from the iPhone bypass kings
+          Highveld Storms & Custom Plates Edition
         </p>
       </div>
 
@@ -336,7 +346,7 @@
 
     <!-- MISSIONS & GOALS HUB MODAL -->
     <section id="screen-missions" class="hidden absolute inset-0 z-50 bg-slate-950/94 backdrop-blur-md flex flex-col p-5 pt-6 pb-7">
-      <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center justify-between mb-3 shrink-0">
         <div>
           <h2 class="font-display text-xl font-black text-white tracking-wide">MISSIONS & GOALS</h2>
           <p class="text-[11px] text-slate-400">Complete run tasks and lifetime milestones for big Rands</p>
@@ -346,16 +356,16 @@
         </button>
       </div>
 
-      <div class="flex border-b border-white/15 mb-3">
+      <div class="flex border-b border-white/15 mb-3 shrink-0">
         <button id="tab-run-missions" class="flex-1 pb-2 font-display text-xs font-bold text-cyan-300 border-b-2 border-cyan-400">RUN MISSIONS</button>
         <button id="tab-lifetime-goals" class="flex-1 pb-2 font-display text-xs font-bold text-slate-400">LIFETIME GOALS</button>
       </div>
 
-      <div id="missions-container" class="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-2.5 pr-0.5">
+      <div id="missions-container" class="scrollable-panel flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-2.5 pr-0.5 pb-4">
         <!-- Dynamic Content -->
       </div>
 
-      <button id="btn-missions-back" class="arcade-btn w-full py-3.5 rounded-2xl text-sm uppercase tracking-widest mt-3">
+      <button id="btn-missions-back" class="arcade-btn w-full py-3.5 rounded-2xl text-sm uppercase tracking-widest mt-3 shrink-0">
         BACK TO MENU
       </button>
     </section>
@@ -392,17 +402,17 @@
 
     <!-- GARAGE MODAL -->
     <section id="screen-garage" class="hidden absolute inset-0 z-50 bg-slate-950/92 backdrop-blur-md flex flex-col p-5 pt-6 pb-7">
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center justify-between mb-3 shrink-0">
         <div>
           <h2 class="font-display text-2xl font-black text-white tracking-wide">GEETECH GARAGE</h2>
-          <p class="text-xs text-slate-400">Unlock cars with distance challenges & rands, tune your ride</p>
+          <p class="text-xs text-slate-400">Unlock cars, tune your ride, and customize plates</p>
         </div>
         <button id="btn-close-garage" class="hud-pill w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg active:scale-90 transition">
           ✕
         </button>
       </div>
 
-      <div class="hud-pill rounded-2xl px-4 py-2.5 mb-4 flex items-center justify-between">
+      <div class="hud-pill rounded-2xl px-4 py-2 mb-3 flex items-center justify-between shrink-0">
         <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Available Rands</span>
         <div class="flex items-center gap-1.5">
           <span class="w-5 h-5 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-300 inline-flex items-center justify-center text-[9px] font-black text-slate-950">R</span>
@@ -410,9 +420,23 @@
         </div>
       </div>
 
-      <div id="garage-list" class="flex-1 overflow-y-auto no-scrollbar grid grid-cols-1 gap-3 pr-0.5"></div>
+      <!-- Custom SA License Plate Studio -->
+      <div class="hud-pill rounded-2xl p-3 mb-3 flex flex-col gap-2 border border-amber-400/30 shrink-0">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-display font-bold text-amber-300 uppercase">🇿🇦 Custom SA License Plate</span>
+          <span class="text-[9px] text-slate-400">Max 10 Chars</span>
+        </div>
+        <div class="flex gap-2">
+          <input id="custom-plate-input" type="text" maxlength="10" placeholder="GEETECH GP" style="user-select: text; -webkit-user-select: text;" class="flex-1 bg-amber-400 text-slate-950 font-display font-black text-sm px-3 py-2 rounded-xl border-2 border-slate-900 uppercase tracking-wider text-center focus:outline-none" />
+          <button id="btn-save-plate" class="px-4 py-2 rounded-xl bg-cyan-400 text-slate-950 font-display text-xs font-black active:scale-95 transition">
+            APPLY
+          </button>
+        </div>
+      </div>
 
-      <button id="btn-garage-done" class="arcade-btn w-full py-3.5 rounded-2xl text-sm uppercase tracking-widest mt-4">
+      <div id="garage-list" class="scrollable-panel flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-3 pr-0.5 pb-4"></div>
+
+      <button id="btn-garage-done" class="arcade-btn w-full py-3.5 rounded-2xl text-sm uppercase tracking-widest mt-3 shrink-0">
         BACK TO MENU
       </button>
     </section>
@@ -517,7 +541,6 @@
       { short: 'PRETORIA', name: 'PRETORIA // JACARANDA CITY', fog: 0x130726, skyTop: '#120624', primary: 0xc77dff, secondary: 0xffbe0b, road: 0x160f29 }
     ];
 
-    // --- MISSION & LIFETIME GOAL DEFINITIONS ---
     const RUN_MISSION_POOL = [
       { id: 'near_miss_easy', tier: 'Easy', reward: 20, desc: 'Complete 20 near-misses in a single run', target: 20, type: 'nearMisses' },
       { id: 'distance_easy', tier: 'Easy', reward: 20, desc: 'Drive 8000m in a single run', target: 8000, type: 'distance' },
@@ -540,21 +563,20 @@
       { id: 'lt_cars_6', title: 'Garage Master', desc: 'Own 6 cars', target: 6, reward: 600, key: 'carsOwnedCount' },
       { id: 'lt_cars_all', title: 'MZANSI LEGEND', desc: 'Own all 9 cars', target: 9, reward: 1500, key: 'carsOwnedCount' },
       { id: 'lt_max_upgrades', title: 'Fully Tuned', desc: 'Max one car’s upgrades to Level 3', target: 1, reward: 500, key: 'maxedCarCount' },
-      { id: 'lt_potholes', title: 'Suspension Destroyer', desc: '25 potholes hit (The Joke Goal)', target: 25, reward: 50, key: 'totalPotholes' },
-	  { id: 'lt_loadshedding', title: 'Load-Shedding Survivor', desc: 'Survive 20 load-shedding events', target: 20, reward: 350, key: 'totalBlackouts' },
+      { id: 'lt_potholes', title: 'Suspension Destroyer', desc: '25 potholes hit (The Joke Goal)', target: 25, reward: 50, key: 'totalPotholes' }
     ];
 
     const StorageManager = {
-      key: 'geetech_drive_save_v45',
+      key: 'geetech_drive_save_v46',
       data: {
         highScore: 0,
         bestDistance: 0,
         coins: 0,
         unlockedCars: ['VW1'],
         selectedCar: 'VW1',
+        customPlate: 'GEETECH GP',
         upgrades: {},
         muted: false,
-        // Stats & Mission tracking
         totalNearMisses: 0,
         totalDistance: 0,
         totalBlackouts: 0,
@@ -575,6 +597,7 @@
             if (!this.data.unlockedCars || this.data.unlockedCars.length === 0) this.data.unlockedCars = ['VW1'];
             if (!this.data.upgrades || typeof this.data.upgrades !== 'object') this.data.upgrades = {};
             if (!Array.isArray(this.data.claimedGoals)) this.data.claimedGoals = [];
+            if (!this.data.customPlate) this.data.customPlate = 'GEETECH GP';
           }
           this.checkDailyReset();
           this.ensureActiveMissions();
@@ -590,11 +613,10 @@
       checkDailyReset() {
         const todayStr = new Date().toDateString();
         if (this.data.lastActiveDate !== todayStr) {
-          // Check if streak was broken (yesterday)
           const yesterday = new Date();
           yesterday.setDate(yesterday.getDate() - 1);
           if (this.data.lastActiveDate !== yesterday.toDateString() && this.data.lastActiveDate !== '') {
-            this.data.dailyStreak = 0; // reset streak if missed a day
+            this.data.dailyStreak = 0;
           }
           this.data.rerollUsedToday = false;
           this.data.claimedDailyToday = false;
@@ -617,11 +639,7 @@
           return { ...item, progress: 0, completed: false, claimed: false };
         };
 
-        this.data.activeMissions = [
-          pickRandom(easy),
-          pickRandom(med),
-          pickRandom(hard)
-        ];
+        this.data.activeMissions = [pickRandom(easy), pickRandom(med), pickRandom(hard)];
         this.data.rerollUsedToday = false;
         this.save();
       }
@@ -825,6 +843,30 @@
           osc.stop(now + idx * 0.07 + 0.36);
         });
       }
+
+      playThunder() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const bufferSize = this.ctx.sampleRate * 1.2;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.45));
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(180, now);
+        filter.frequency.exponentialRampToValueAtTime(40, now + 1.1);
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.28, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.15);
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start(now);
+      }
     }
 
     const sound = new SoundEngine();
@@ -911,6 +953,27 @@
     const rightRail = new THREE.Mesh(railGeo, railMat);
     rightRail.position.set(ROAD_WIDTH / 2 + 0.16, 0.27, -ROAD_LENGTH / 2 + 20);
     scene.add(rightRail);
+
+    // --- STORM & RAIN PARTICLES SYSTEM ---
+    const rainCount = 800;
+    const rainGeo = new THREE.BufferGeometry();
+    const rainPositions = new Float32Array(rainCount * 3);
+    for (let i = 0; i < rainCount * 3; i += 3) {
+      rainPositions[i] = (Math.random() - 0.5) * 45;
+      rainPositions[i + 1] = Math.random() * 30;
+      rainPositions[i + 2] = (Math.random() - 0.5) * 200;
+    }
+    rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPositions, 3));
+    const rainMat = new THREE.PointsMaterial({
+      color: 0x00f3ff,
+      size: 0.18,
+      transparent: true,
+      opacity: 0.65,
+      blending: THREE.AdditiveBlending
+    });
+    const rainSystem = new THREE.Points(rainGeo, rainMat);
+    rainSystem.visible = false;
+    scene.add(rainSystem);
 
     const laneLines = [];
     const dashGeo = new THREE.PlaneGeometry(0.14, 3.4);
@@ -1055,6 +1118,24 @@
     let playerAccentMat = new THREE.MeshStandardMaterial({ color: 0xff007f, roughness: 0.3, metalness: 0.55 });
     let flameLeft, flameRight, shieldSphere;
     let playerWheels = [];
+    let customPlateMesh = null;
+
+    function createLicensePlateTexture(text) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256; canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffbe0b';
+      ctx.fillRect(0, 0, 256, 128);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 34px Orbitron, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text || 'GEETECH GP', 128, 64);
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 8;
+      ctx.strokeRect(0, 0, 256, 128);
+      return new THREE.CanvasTexture(canvas);
+    }
 
     function makeRoundedPanel(width, height, depth, radius, material, bevel = 0.035) {
       const x = width / 2, y = height / 2, r = Math.min(radius, x * 0.8, y * 0.8);
@@ -1109,7 +1190,6 @@
       const discMat = new THREE.MeshStandardMaterial({ color: 0x68717c, roughness: 0.55, metalness: 0.82 });
       const lampMat = new THREE.MeshStandardMaterial({ color: 0xfff4d4, emissive: 0xffd98a, emissiveIntensity: 1.25, roughness: 0.18 });
       const tailMat = new THREE.MeshStandardMaterial({ color: 0xb50024, emissive: 0xff002f, emissiveIntensity: 1.0, roughness: 0.25 });
-      const indicatorMat = new THREE.MeshBasicMaterial({ color: 0xffa51f });
 
       const add = (mesh, x, y, z) => { mesh.position.set(x, y, z); playerCar.add(mesh); return mesh; };
       const box = (w,h,d,x,y,z,mat, bevel=0.025) => add(makeRoundedPanel(w,h,d,Math.min(bevel*2, h*0.3),mat,bevel),x,y,z);
@@ -1144,6 +1224,14 @@
         head.rotation.z = side * -0.08;
         box(w*0.25,0.105,0.045,side*w*0.31,ride+0.30,len*0.49,tailMat,0.025);
       });
+
+      // --- CUSTOM LICENSE PLATE MESH ON REAR ---
+      const plateTex = createLicensePlateTexture(StorageManager.data.customPlate);
+      const plateMat = new THREE.MeshBasicMaterial({ map: plateTex });
+      const plateMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.28), plateMat);
+      plateMesh.position.set(0, bodyY + 0.08, len * 0.502);
+      playerCar.add(plateMesh);
+      customPlateMesh = plateMesh;
 
       const wheelZ = len*0.31;
       [-1,1].forEach(side => [-1,1].forEach(axle => {
@@ -1274,7 +1362,7 @@
     }
 
     // ==========================================
-    // 4. GAME STATE & RUN MISSION TRACKER
+    // 4. GAME STATE & RUN WEATHER TRACKER
     // ==========================================
     const GameState = {
       status: 'MENU',
@@ -1294,6 +1382,8 @@
       coinSpawnTimer: 0,
       shakeIntensity: 0,
       sectorIndex: 0,
+      isStormActive: false,
+      lightningTimer: 0,
       isBlackout: false,
       blackoutFactor: 0,
       nextBlackoutDist: 380,
@@ -1325,13 +1415,26 @@
     function applySectorTheme(idx, announce = false) {
       const theme = SECTOR_THEMES[idx % SECTOR_THEMES.length];
       GameState.activeTheme = theme;
+      
+      // Toggle dynamic storm weather randomly per sector
+      GameState.isStormActive = (idx % 2 === 1) || (Math.random() < 0.4);
+      rainSystem.visible = GameState.isStormActive;
+      document.getElementById('weather-badge').classList.toggle('hidden', !GameState.isStormActive);
+
+      if (GameState.isStormActive) {
+        roadMat.roughness = 0.18;
+        roadMat.metalness = 0.65;
+      } else {
+        roadMat.roughness = 0.45;
+        roadMat.metalness = 0.35;
+      }
+
       if (!GameState.isBlackout) {
         scene.fog.color.setHex(theme.fog);
         scene.background.setHex(theme.fog);
         railMat.color.setHex(theme.primary);
         archMat.color.setHex(theme.secondary);
         archSecondaryMat.color.setHex(theme.primary);
-        roadMat.color.setHex(theme.road);
         horizonSun.material.color.setHex(theme.secondary);
       }
       document.getElementById('zone-badge').textContent = theme.short;
@@ -1339,6 +1442,9 @@
       if (announce) {
         triggerFlash('rgba(0, 243, 255, 0.22)');
         spawnPopup(theme.name, '#00f3ff', '1.05rem');
+        if (GameState.isStormActive) {
+          setTimeout(() => spawnPopup('🌧️ HIGHVELD STORM WARNING!', '#00eaff', '1.1rem'), 800);
+        }
       }
     }
 
@@ -1350,7 +1456,6 @@
       triggerFlash('rgba(245, 158, 11, 0.32)');
       spawnPopup('⚡ EISH! LOAD SHEDDING STAGE 4!', '#fbbf24', '1.15rem');
 
-      // Track lifetime goals & mission progress
       StorageManager.data.totalBlackouts = (StorageManager.data.totalBlackouts || 0) + 1;
       StorageManager.save();
       checkMissionProgress('blackouts', 1);
@@ -1380,10 +1485,10 @@
       GameState.runCoins = 0; GameState.nearMissCount = 0; GameState.combo = 1; GameState.comboTimer = 0;
       GameState.nitro = 100; GameState.isNitroActive = false; GameState.baseSpeed = 48; GameState.currentSpeed = 48;
       GameState.spawnTimer = 0.6; GameState.coinSpawnTimer = 1.2; GameState.shakeIntensity = 0; GameState.sectorIndex = 0;
+      GameState.isStormActive = false; GameState.lightningTimer = 4.0;
       GameState.isBlackout = false; GameState.blackoutFactor = 0; GameState.nextBlackoutDist = 380; GameState.blackoutEndDist = 0;
       GameState.hasShield = false; GameState.magnetTimer = 0; GameState.runMissionsCompleted = [];
 
-      // Reset active mission progress for new run
       StorageManager.data.activeMissions.forEach(m => { m.progress = 0; m.completed = false; });
       StorageManager.save();
 
@@ -1419,6 +1524,7 @@
       GameState.status = 'GAMEOVER';
       GameState.isNitroActive = false;
       GameState.shakeIntensity = 0.75;
+      rainSystem.visible = false;
       document.getElementById('speed-lines').classList.remove('active');
       sound.setEngineActive(false);
       sound.playCrash();
@@ -1432,7 +1538,6 @@
       const isNewRecord = finalScore > StorageManager.data.highScore;
       if (isNewRecord) StorageManager.data.highScore = finalScore;
 
-      // Update lifetime stats
       StorageManager.data.coins += GameState.runCoins;
       StorageManager.data.bestDistance = Math.max(StorageManager.data.bestDistance || 0, Math.floor(GameState.distance));
       StorageManager.data.totalDistance = (StorageManager.data.totalDistance || 0) + Math.floor(GameState.distance);
@@ -1448,7 +1553,6 @@
       document.getElementById('over-coins').textContent = GameState.runCoins;
       document.getElementById('new-record-badge').classList.toggle('hidden', !isNewRecord);
 
-      // Render missions summary on Game Over
       const missionSummaryBox = document.getElementById('over-missions-summary');
       const missionListEl = document.getElementById('over-missions-list');
       if (GameState.runMissionsCompleted.length > 0) {
@@ -1467,10 +1571,7 @@
     }
 
     function checkLifetimeGoals() {
-      // Check ownership count, upgrades, etc.
       StorageManager.data.carsOwnedCount = StorageManager.data.unlockedCars.length;
-      
-      // Check if any car is maxed out
       let maxedCount = 0;
       CAR_CATALOG.forEach(car => {
         const lv = getCarUpgradeLevels(car.id);
@@ -1541,6 +1642,7 @@
       document.getElementById('menu-high-score').textContent = StorageManager.data.highScore.toLocaleString();
       document.getElementById('hud-coins').textContent = StorageManager.data.coins.toLocaleString();
       document.getElementById('garage-coins').textContent = StorageManager.data.coins.toLocaleString();
+      document.getElementById('custom-plate-input').value = StorageManager.data.customPlate || 'GEETECH GP';
 
       const car = getSelectedCarSpec();
       document.getElementById('selected-car-name').textContent = car.name;
@@ -1570,12 +1672,12 @@
       if (screenName === 'GAMEOVER') document.getElementById('screen-gameover').classList.remove('hidden');
     }
 
-    // --- RENDER MISSIONS & GOALS HUB ---
     let currentMissionTab = 'run';
     function renderMissionsScreen(tab) {
       currentMissionTab = tab;
       const container = document.getElementById('missions-container');
       container.innerHTML = '';
+      container.scrollTop = 0;
 
       const tabRun = document.getElementById('tab-run-missions');
       const tabLife = document.getElementById('tab-lifetime-goals');
@@ -1583,9 +1685,8 @@
       tabLife.className = `flex-1 pb-2 font-display text-xs font-bold ${tab==='lifetime'?'text-cyan-300 border-b-2 border-cyan-400':'text-slate-400'}`;
 
       if (tab === 'run') {
-        // Reroll option header
         const rerollDiv = document.createElement('div');
-        rerollDiv.className = 'hud-pill rounded-xl p-3 flex items-center justify-between mb-1';
+        rerollDiv.className = 'hud-pill rounded-xl p-3 flex items-center justify-between mb-1 shrink-0';
         rerollDiv.innerHTML = `
           <div>
             <div class="text-xs font-bold text-white">Daily Reroll</div>
@@ -1597,9 +1698,9 @@
         `;
         container.appendChild(rerollDiv);
 
-        StorageManager.data.activeMissions.forEach((m, idx) => {
+        StorageManager.data.activeMissions.forEach((m) => {
           const card = document.createElement('div');
-          card.className = 'hud-pill rounded-2xl p-3.5 border border-white/10 flex flex-col gap-2';
+          card.className = 'hud-pill rounded-2xl p-3.5 border border-white/10 flex flex-col gap-2 shrink-0';
           const pct = Math.min(100, (m.progress / m.target) * 100);
           card.innerHTML = `
             <div class="flex items-center justify-between">
@@ -1634,7 +1735,7 @@
           const pct = Math.min(100, (currentVal / goal.target) * 100);
 
           const card = document.createElement('div');
-          card.className = `hud-pill rounded-2xl p-3.5 border ${claimed ? 'border-emerald-500/40 bg-emerald-950/20' : 'border-white/10'}`;
+          card.className = `hud-pill rounded-2xl p-3.5 border shrink-0 ${claimed ? 'border-emerald-500/40 bg-emerald-950/20' : 'border-white/10'}`;
           card.innerHTML = `
             <div class="flex items-center justify-between mb-1">
               <div class="font-display text-xs font-bold text-white">${goal.title}</div>
@@ -1734,12 +1835,25 @@
     ['touchend', 'mouseup', 'mouseleave'].forEach(ev => btnNitro.addEventListener(ev, () => setNitro(false)));
 
     // ==========================================
-    // GARAGE RENDERER
+    // GARAGE RENDERER & PLATE SAVING
     // ==========================================
+    document.getElementById('btn-save-plate').addEventListener('click', () => {
+      const val = document.getElementById('custom-plate-input').value.trim().toUpperCase();
+      if (val.length > 0) {
+        StorageManager.data.customPlate = val;
+        StorageManager.save();
+        buildPlayerCar(getSelectedCarSpec());
+        showToast(`License Plate Set to: ${val}`);
+        sound.playCoin();
+      }
+    });
+
     function renderGarage() {
       const list = document.getElementById('garage-list');
       list.innerHTML = '';
       document.getElementById('garage-coins').textContent = StorageManager.data.coins.toLocaleString();
+      document.getElementById('custom-plate-input').value = StorageManager.data.customPlate || 'GEETECH GP';
+
       const progress = StorageManager.data.bestDistance || 0;
       CAR_CATALOG.forEach((car) => {
         const isUnlocked = StorageManager.data.unlockedCars.includes(car.id);
@@ -1747,7 +1861,7 @@
         const levels = getCarUpgradeLevels(car.id);
         const challengeMet = hasCarChallenge(car);
         const card = document.createElement('div');
-        card.className = `hud-pill rounded-2xl p-3.5 border ${isSelected ? 'border-cyan-400 bg-cyan-950/30' : 'border-white/10'}`;
+        card.className = `hud-pill rounded-2xl p-3.5 border shrink-0 ${isSelected ? 'border-cyan-400 bg-cyan-950/30' : 'border-white/10'}`;
         const upgradeRows = [['engine','ENGINE','Top speed'],['tyres','TYRES','Handling'],['nitro','NITRO','Boost']].map(([key,label,benefit]) => {
           const level = levels[key] || 0;
           return `<div class="flex items-center justify-between gap-2 py-1.5 border-t border-white/10"><div><div class="text-[10px] font-display font-bold text-white">${label} <span class="text-cyan-300">LV ${level}/3</span></div><div class="text-[9px] text-slate-400">${benefit}</div></div>${level < 3 ? `<button data-upgrade="${car.id}" data-type="${key}" class="rounded-lg px-2.5 py-1.5 text-[9px] font-black ${isUnlocked ? 'bg-cyan-400 text-slate-950' : 'bg-white/10 text-slate-500'}" ${isUnlocked ? '' : 'disabled'}>UPGRADE · R${upgradePrice(level)}</button>` : `<span class="text-[9px] text-emerald-300 font-bold">MAXED</span>`}</div>`;
@@ -1890,6 +2004,26 @@
 
         sound.updateEnginePitch((GameState.currentSpeed - 45) / 60, GameState.isNitroActive);
 
+        // --- RAIN PARTICLES ANIMATION & LIGHTNING ---
+        if (GameState.isStormActive) {
+          const positions = rainSystem.geometry.attributes.position.array;
+          for (let i = 1; i < positions.length; i += 3) {
+            positions[i] -= (GameState.currentSpeed + 35) * dt;
+            positions[i - 2] += GameState.currentSpeed * 0.4 * dt;
+            if (positions[i] < 0) positions[i] = 28;
+            if (positions[i - 2] > 50) positions[i - 2] = -150;
+          }
+          rainSystem.geometry.attributes.position.needsUpdate = true;
+
+          GameState.lightningTimer -= dt;
+          if (GameState.lightningTimer <= 0) {
+            GameState.lightningTimer = 6.0 + Math.random() * 8.0;
+            triggerFlash('rgba(255, 255, 255, 0.75)');
+            sound.playThunder();
+            spawnPopup('⚡ THUNDERSTORM LIGHTNING!', '#00f3ff', '1.1rem');
+          }
+        }
+
         const stepDist = GameState.currentSpeed * dt;
         GameState.distance += stepDist * 0.45;
         GameState.score += stepDist * 0.85 * GameState.combo * (GameState.isNitroActive ? 1.5 : 1);
@@ -1950,7 +2084,6 @@
         laneLines.forEach(dash => { dash.position.z += GameState.currentSpeed * dt; if (dash.position.z > 18) dash.position.z -= 225; });
         tunnelArches.forEach(arch => { arch.position.z += GameState.currentSpeed * dt; if (arch.position.z > 16) arch.position.z -= 252; });
 
-        // Spawners
         GameState.spawnTimer -= dt;
         if (GameState.spawnTimer <= 0) {
           const dist = GameState.distance, stage = dist < 400 ? 1 : dist < 1000 ? 2 : dist < 2000 ? 3 : 4;
@@ -1976,7 +2109,6 @@
           spawnCoinRow(Math.floor(Math.random() * LANES.length), -165, 4);
         }
 
-        // Traffic Update
         for (let i = trafficCars.length - 1; i >= 0; i--) {
           const t = trafficCars[i];
           t.mesh.position.z += (GameState.currentSpeed - t.speed) * dt;
@@ -2023,7 +2155,6 @@
           if (t.mesh.position.z > 24) { scene.remove(t.mesh); trafficCars.splice(i, 1); }
         }
 
-        // Obstacles Update
         for (let i = obstaclesList.length - 1; i >= 0; i--) {
           const obs = obstaclesList[i];
           obs.mesh.position.z += GameState.currentSpeed * dt;
@@ -2046,7 +2177,6 @@
           if (obs.mesh.position.z > 20) { scene.remove(obs.mesh); obstaclesList.splice(i, 1); }
         }
 
-        // Power-Ups Update
         for (let i = powerUpsList.length - 1; i >= 0; i--) {
           const pu = powerUpsList[i];
           pu.mesh.position.z += GameState.currentSpeed * dt;
@@ -2064,7 +2194,6 @@
           if (pu.mesh.position.z > 20) { scene.remove(pu.mesh); powerUpsList.splice(i, 1); }
         }
 
-        // Coins Update
         for (let i = coinsList.length - 1; i >= 0; i--) {
           const c = coinsList[i];
           c.mesh.position.z += GameState.currentSpeed * dt;
@@ -2087,7 +2216,6 @@
         updateHUD();
       }
 
-      // Particles
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.life -= dt * 1.9; p.vy -= 26 * dt;
