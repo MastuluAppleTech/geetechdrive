@@ -2778,8 +2778,8 @@
 
     async function post(name, score, distance) {
       if (!db) throw new Error('offline');
-      await setDoc(doc(db, 'scores_stage2', pid), {
-        name, score, distance, updatedAt: serverTimestamp()
+      await setDoc(doc(db, 'scores', pid + '-s2'), {
+        name: (name + ' S2').slice(0, 14), score, distance, updatedAt: serverTimestamp()
       });
       store.set('geetech_lb_name', name);
       store.set('geetech2_lb_best', String(score));
@@ -2791,7 +2791,7 @@
       status.textContent = 'Loading…';
       if (!db) { status.textContent = 'Leaderboard offline'; return; }
       try {
-        const snap = await getDocs(query(collection(db, 'scores_stage2'), orderBy('score', 'desc'), limit(20)));
+        const snap = await getDocs(query(collection(db, 'scores'), orderBy('score', 'desc'), limit(20)));
         if (snap.empty) { status.textContent = 'No scores yet. Be the first!'; return; }
         status.textContent = 'Top 20 drivers';
         const medals = ['🥇', '🥈', '🥉'];
