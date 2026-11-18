@@ -1,0 +1,2937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>GEETECH DRIVE — Stage 2</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --neon-cyan: #00f3ff;
+      --neon-pink: #ff007f;
+      --neon-amber: #ffbe0b;
+      --neon-purple: #8338ec;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 20%, #141229 0%, #06060d 100%);
+      font-family: 'Rajdhani', sans-serif;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+    }
+
+    .font-display {
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    #app-shell {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      max-width: 100vw;
+      max-height: 100vh;
+      overflow: hidden;
+      background: #070710;
+    }
+
+    @media (min-width: 640px) {
+      #app-shell {
+        width: 430px;
+        height: 92vh;
+        max-height: 880px;
+        border-radius: 36px;
+        border: 3px solid rgba(255, 255, 255, 0.14);
+        box-shadow:
+          0 25px 70px rgba(0, 0, 0, 0.85),
+          0 0 40px rgba(0, 243, 255, 0.15),
+          inset 0 0 0 2px rgba(0, 0, 0, 0.6);
+      }
+    }
+
+    #game-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .scrollable-panel,
+    .scrollable-panel * {
+      touch-action: pan-y !important;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #speed-lines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      background: repeating-conic-gradient(
+        from 0deg at 50% 45%,
+        rgba(0, 243, 255, 0.18) 0deg 1.2deg,
+        transparent 1.2deg 9deg
+      );
+      mask-image: radial-gradient(circle at 50% 45%, transparent 38%, black 78%);
+      -webkit-mask-image: radial-gradient(circle at 50% 45%, transparent 38%, black 78%);
+    }
+
+    #speed-lines.active {
+      opacity: 1;
+      animation: pulseLines 0.18s infinite alternate;
+    }
+
+    @keyframes pulseLines {
+      from { transform: scale(1); }
+      to { transform: scale(1.04); }
+    }
+
+    .hud-pill {
+      background: rgba(12, 14, 28, 0.78);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .arcade-btn {
+      background: linear-gradient(135deg, #00f3ff 0%, #0077ff 100%);
+      color: #030712;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      box-shadow: 0 6px 0 #004499, 0 12px 24px rgba(0, 243, 255, 0.35);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.15s ease;
+    }
+
+    .arcade-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #004499, 0 6px 12px rgba(0, 243, 255, 0.25);
+    }
+
+    @keyframes blackoutPulse {
+      0%, 100% { border-color: rgba(251, 191, 36, 0.85); box-shadow: 0 0 22px rgba(245, 158, 11, 0.45); }
+      50% { border-color: rgba(239, 68, 68, 0.9); box-shadow: 0 0 32px rgba(239, 68, 68, 0.75); }
+    }
+
+    .blackout-badge {
+      animation: blackoutPulse 0.85s infinite ease-in-out;
+    }
+
+    .floating-callout {
+      position: absolute;
+      left: 50%;
+      top: 34%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      text-align: center;
+      text-shadow: 0 0 14px rgba(0, 243, 255, 0.9), 0 3px 0 #000;
+      animation: floatUpFade 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      z-index: 30;
+      white-space: nowrap;
+    }
+
+    @keyframes floatUpFade {
+      0% { opacity: 0; transform: translate(-50%, -20%) scale(0.75); }
+      20% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+      100% { opacity: 0; transform: translate(-50%, -145%) scale(0.95); }
+    }
+
+    @keyframes nitroReadyGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(0, 243, 255, 0.5), inset 0 0 10px rgba(0, 243, 255, 0.4); }
+      50% { box-shadow: 0 0 28px rgba(0, 243, 255, 0.95), inset 0 0 18px rgba(255, 255, 255, 0.7); }
+    }
+
+    .nitro-ready {
+      animation: nitroReadyGlow 1.1s infinite ease-in-out;
+    }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body>
+
+  <div id="app-shell">
+    <canvas id="game-canvas"></canvas>
+    <div id="speed-lines"></div>
+    <div id="screen-flash" class="absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-150 z-10"></div>
+    <div id="popups-layer" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
+
+    <!-- TOP HUD -->
+    <header id="top-hud" class="absolute top-0 left-0 right-0 p-3.5 pt-5 flex items-start justify-between gap-1.5 z-30 pointer-events-none">
+      <div id="gameplay-stats" class="hidden flex-col gap-1.5">
+        <div class="hud-pill rounded-2xl px-3 py-1.5 flex items-center gap-2.5">
+          <div>
+            <div class="text-[9px] uppercase tracking-widest text-cyan-300 font-bold leading-none">Score</div>
+            <div id="hud-score" class="font-display text-lg font-black text-white leading-tight">0</div>
+          </div>
+          <div class="h-6 w-[1px] bg-white/15"></div>
+          <div>
+            <div class="text-[9px] uppercase tracking-widest text-pink-400 font-bold leading-none">Combo</div>
+            <div id="hud-combo" class="font-display text-sm font-bold text-pink-300 leading-tight">x1</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-1">
+          <div class="hud-pill rounded-full px-2.5 py-0.5 text-[11px] font-bold text-slate-200 tracking-wider">
+            <span id="hud-distance">0</span>m
+          </div>
+          <div id="zone-badge" class="hud-pill rounded-full px-2 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider text-cyan-300">
+            JOBURG
+          </div>
+          <div id="weather-badge" class="hidden hud-pill rounded-full px-2 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider text-sky-300 border border-sky-400">
+            🌧️ STORM
+          </div>
+          <div id="blackout-badge" class="hidden hud-pill blackout-badge rounded-full px-2 py-0.5 text-[9px] font-display font-black uppercase tracking-wider text-amber-300 bg-amber-950/80">
+            ⚡ STAGE 4
+          </div>
+          <div id="shield-badge" class="hidden hud-pill rounded-full px-2 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider text-cyan-300 border border-cyan-400">
+            🛡️ ARMOUR
+          </div>
+          <div id="magnet-badge" class="hidden hud-pill rounded-full px-2 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider text-pink-300 border border-pink-400">
+            🧲 SPAZA
+          </div>
+        </div>
+      </div>
+
+      <div id="menu-best-badge" class="hud-pill rounded-2xl px-3 py-2 flex items-center gap-1.5 pointer-events-auto shrink-0">
+        <span class="text-amber-400 text-sm">🏆</span>
+        <div>
+          <div class="text-[8px] uppercase tracking-widest text-slate-400 font-bold leading-none">Best</div>
+          <div id="menu-high-score" class="font-display text-xs font-bold text-white">0</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5 pointer-events-auto shrink-0">
+        <div class="hud-pill rounded-full px-2.5 py-1.5 flex items-center gap-1">
+          <span class="w-4 h-4 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-300 inline-flex items-center justify-center text-[9px] font-black text-slate-950 shadow-sm">R</span>
+          <span id="hud-coins" class="font-display text-xs font-bold text-amber-300">0</span>
+        </div>
+
+        <!-- RADIO STATION + NEXT TRACK CONTROLS -->
+        <div class="hud-pill h-9 rounded-full flex items-center border border-pink-500/40 overflow-hidden">
+          <button id="btn-radio" aria-label="Switch Radio Station" class="h-full pl-2.5 pr-1.5 flex items-center gap-1 text-white active:bg-white/10 transition">
+            <span class="text-xs">📻</span>
+            <span id="radio-station-label" class="font-display text-[9px] font-black tracking-wider text-pink-300">PIANO FM</span>
+          </button>
+          <button id="btn-next-track" aria-label="Next Track" title="Skip Track" class="h-full px-2 border-l border-white/15 text-[10px] font-bold text-cyan-300 active:bg-white/15 transition">
+            ⏭
+          </button>
+        </div>
+
+        <button id="btn-mute" aria-label="Toggle Sound" class="hud-pill w-9 h-9 rounded-full flex items-center justify-center text-white active:scale-90 transition">
+          <svg id="icon-sound-on" class="w-4 h-4 text-cyan-300" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14"/>
+          </svg>
+          <svg id="icon-sound-off" class="w-4 h-4 text-rose-400 hidden" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/>
+          </svg>
+        </button>
+
+        <button id="btn-pause" aria-label="Pause Game" class="hidden hud-pill w-9 h-9 rounded-full flex items-center justify-center text-white active:scale-90 transition">
+          <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <rect x="6" y="5" width="4" height="14" rx="1.5"/>
+            <rect x="14" y="5" width="4" height="14" rx="1.5"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- GAMEPLAY BOTTOM CONTROLS -->
+    <div id="gameplay-controls" class="hidden absolute bottom-0 left-0 right-0 p-5 pb-7 flex flex-col items-center gap-3 z-30 pointer-events-none">
+      <div class="w-full max-w-[340px] flex items-center justify-between gap-3">
+        <div class="hud-pill rounded-2xl px-3 py-2 text-center min-w-[76px]">
+          <div id="hud-speed" class="font-display text-lg font-black text-white leading-none">140</div>
+          <div class="text-[9px] font-bold tracking-widest text-cyan-400 uppercase mt-0.5">KM/H</div>
+        </div>
+
+        <button id="btn-nitro" class="pointer-events-auto flex-1 hud-pill rounded-2xl p-2.5 flex flex-col gap-1.5 relative overflow-hidden active:scale-95 transition">
+          <div class="flex items-center justify-between w-full px-1">
+            <span class="font-display text-[11px] font-black tracking-wider text-cyan-300 flex items-center gap-1">
+              ⚡ NITRO BOOST
+            </span>
+            <span id="nitro-pct" class="font-display text-[11px] font-bold text-white">100%</span>
+          </div>
+          <div class="w-full h-2.5 bg-slate-900/90 rounded-full overflow-hidden p-0.5 border border-white/10">
+            <div id="nitro-bar" class="h-full w-full rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-fuchsia-500 transition-all duration-75"></div>
+          </div>
+        </button>
+      </div>
+
+      <div class="flex items-center justify-between w-full max-w-[320px] px-2 text-[11px] font-semibold tracking-wider text-white/45 uppercase">
+        <span>◀ Tap / Drag Left</span>
+        <span>Swipe Up: Nitro</span>
+        <span>Tap / Drag Right ▶</span>
+      </div>
+    </div>
+
+    <!-- START / TITLE OVERLAY -->
+    <section id="screen-start" class="absolute inset-0 flex flex-col justify-between p-6 pt-16 pb-8 z-40 bg-gradient-to-b from-slate-950/55 via-transparent to-slate-950/90">
+      <div class="text-center mt-1">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-400/30 text-cyan-300 text-[11px] font-display font-bold tracking-widest uppercase mb-1.5">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+          Geetech ZA GAMES
+        </div>
+        <h1 class="font-display text-3xl sm:text-4xl font-black tracking-tight text-white drop-shadow-[0_4px_20px_rgba(0,243,255,0.45)] leading-none">
+          GEETECH<br/>
+          <span class="bg-gradient-to-r from-cyan-300 via-sky-400 to-pink-500 bg-clip-text text-transparent">DRIVE STAGE 2</span>
+        </h1>
+        <p class="text-slate-300 text-xs font-medium mt-1 tracking-wide">
+          Beyond the city limits: Karoo to Kruger
+        </p>
+      </div>
+
+      <!-- Action Buttons & Hub Links -->
+      <div class="flex flex-col gap-3 w-full max-w-[340px] mx-auto">
+        <div class="hud-pill rounded-2xl p-3 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div id="selected-car-swatch" class="w-10 h-10 rounded-xl border border-white/25 shadow-inner flex items-center justify-center font-display font-black text-xs text-slate-950">
+              GT
+            </div>
+            <div>
+              <div class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Active Vehicle</div>
+              <div id="selected-car-name" class="font-display text-sm font-bold text-white">KWID</div>
+            </div>
+          </div>
+          <button id="btn-open-garage" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 font-display text-xs font-bold tracking-wider text-cyan-300 active:scale-95 transition">
+            GARAGE 🚗
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button id="btn-open-missions" class="hud-pill rounded-2xl py-3 px-3 flex items-center justify-between text-left active:scale-95 transition border border-cyan-500/30">
+            <div>
+              <div class="text-[10px] font-display font-bold text-cyan-300">MISSIONS & GOALS</div>
+              <div id="menu-missions-status" class="text-[9px] text-slate-300">3 Active Run Tasks</div>
+            </div>
+            <span class="text-lg">🎯</span>
+          </button>
+
+          <button id="btn-open-daily" class="hud-pill rounded-2xl py-3 px-3 flex items-center justify-between text-left active:scale-95 transition border border-amber-500/30">
+            <div>
+              <div class="text-[10px] font-display font-bold text-amber-300">DAILY BONUS</div>
+              <div id="menu-daily-status" class="text-[9px] text-slate-300">Claim R100+</div>
+            </div>
+            <span class="text-lg">🎁</span>
+          </button>
+        </div>
+
+        <button id="btn-open-leaderboard" class="hud-pill rounded-2xl py-3 px-4 flex items-center justify-between text-left active:scale-95 transition border border-pink-500/40">
+          <div>
+            <div class="text-[10px] font-display font-bold text-pink-300">LEADERBOARD</div>
+            <div class="text-[9px] text-slate-300">See the top drivers in Mzansi</div>
+          </div>
+          <span class="text-lg">🏆</span>
+        </button>
+
+        <button id="btn-play" class="arcade-btn w-full py-4 rounded-2xl text-lg uppercase tracking-widest flex items-center justify-center gap-2.5 cursor-pointer">
+          <span>TAP TO GO</span>
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- MISSIONS & GOALS HUB MODAL -->
+    <section id="screen-missions" class="hidden absolute inset-0 z-50 bg-slate-950/94 backdrop-blur-md flex flex-col p-5 pt-6 pb-7">
+      <div class="flex items-center justify-between mb-3 shrink-0">
+        <div>
+          <h2 class="font-display text-xl font-black text-white tracking-wide">MISSIONS & GOALS</h2>
+          <p class="text-[11px] text-slate-400">Complete run tasks and lifetime milestones for big Rands</p>
+        </div>
+        <button id="btn-close-missions" class="hud-pill w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg active:scale-90 transition">
+          ✕
+        </button>
+      </div>
+
+      <div class="flex border-b border-white/15 mb-3 shrink-0">
+        <button id="tab-run-missions" class="flex-1 pb-2 font-display text-xs font-bold text-cyan-300 border-b-2 border-cyan-400">RUN MISSIONS</button>
+        <button id="tab-lifetime-goals" class="flex-1 pb-2 font-display text-xs font-bold text-slate-400">LIFETIME GOALS</button>
+      </div>
+
+      <div id="missions-container" class="scrollable-panel flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-2.5 pr-0.5 pb-4"></div>
+
+      <button id="btn-missions-back" class="arcade-btn w-full py-3.5 rounded-2xl text-sm uppercase tracking-widest mt-3 shrink-0">
+        BACK TO MENU
+      </button>
+    </section>
+
+    <!-- DAILY BONUS MODAL -->
+    <section id="screen-daily" class="hidden absolute inset-0 z-50 bg-slate-950/94 backdrop-blur-md flex flex-col items-center justify-center p-6">
+      <div class="hud-pill rounded-3xl p-6 w-full max-w-[340px] text-center flex flex-col gap-4 border border-amber-500/30 shadow-[0_0_40px_rgba(255,190,11,0.2)]">
+        <div>
+          <span class="text-3xl">🎁</span>
+          <h2 class="font-display text-2xl font-black text-white tracking-tight mt-1">DAILY AYOBA BONUS</h2>
+          <p class="text-xs text-slate-300 mt-1">Log in every consecutive day to stack your streak bonus up to R200 per claim!</p>
+        </div>
+
+        <div class="bg-slate-950/60 p-4 rounded-2xl border border-white/10 flex flex-col gap-2">
+          <div class="flex justify-between text-xs font-semibold text-slate-300">
+            <span>Current Streak:</span>
+            <span id="daily-streak-count" class="font-display font-bold text-amber-300">Day 1</span>
+          </div>
+          <div class="flex justify-between text-xs font-semibold text-slate-300">
+            <span>Today's Payout:</span>
+            <span id="daily-payout-amount" class="font-display font-black text-cyan-300">R100</span>
+          </div>
+          <div class="text-[10px] text-slate-400 mt-1">+R20 per consecutive day (Capped at Day 5+ for R200)</div>
+        </div>
+
+        <button id="btn-claim-daily" class="arcade-btn w-full py-3.5 rounded-2xl text-sm uppercase tracking-widest">
+          CLAIM R100
+        </button>
+        <button id="btn-close-daily" class="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 font-display text-xs font-bold text-slate-300 active:scale-95 transition">
+          BACK
+        </button>
+      </div>
+    </section>
+
+    <!-- GARAGE MODAL -->
+    <section id="screen-garage" class="hidden absolute inset-0 z-50 bg-slate-950/92 backdrop-blur-md flex flex-col p-5 pt-6 pb-7">
+      <div class="flex items-center justify-between mb-3 shrink-0">
+        <div>
+          <h2 class="font-display text-2xl font-black text-white tracking-wide">GEETECH GARAGE</h2>
+          <p class="text-xs text-slate-400">Unlock cars, tune your ride, and customize plates</p>
+        </div>
+        <button id="btn-close-garage" class="hud-pill w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg active:scale-90 transition">
+          ✕
+        </button>
+      </div>
+
+      <div class="hud-pill rounded-2xl px-4 py-2 mb-3 flex items-center justify-between shrink-0">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Available Rands</span>
+        <div class="flex items-center gap-1.5">
+          <span class="w-5 h-5 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-300 inline-flex items-center justify-center text-[9px] font-black text-slate-950">R</span>
+          <span id="garage-coins" class="font-display text-lg font-black text-amber-300">0</span>
+        </div>
+      </div>
+
+      <!-- Custom SA License Plate Studio -->
+      <div class="hud-pill rounded-2xl p-3 mb-3 flex flex-col gap-2 border border-amber-400/30 shrink-0">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-display font-bold text-amber-300 uppercase">🇿🇦 Custom SA License Plate</span>
+          <span class="text-[9px] text-slate-400">Max 10 Chars</span>
+        </div>
+        <div class="flex gap-2">
+          <input id="custom-plate-input" type="text" maxlength="10" placeholder="GEETECH GP" style="user-select: text; -webkit-user-select: text;" class="flex-1 bg-amber-400 text-slate-950 font-display font-black text-sm px-3 py-2 rounded-xl border-2 border-slate-900 uppercase tracking-wider text-center focus:outline-none" />
+          <button id="btn-save-plate" class="px-4 py-2 rounded-xl bg-cyan-400 text-slate-950 font-display text-xs font-black active:scale-95 transition">
+            APPLY
+          </button>
+        </div>
+      </div>
+
+      <div id="garage-list" class="scrollable-panel flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-3 pr-0.5 pb-4"></div>
+
+      <button id="btn-garage-done" class="arcade-btn w-full py-3.5 rounded-2xl text-sm uppercase tracking-widest mt-3 shrink-0">
+        BACK TO MENU
+      </button>
+    </section>
+
+    <!-- PAUSE OVERLAY -->
+    <section id="screen-pause" class="hidden absolute inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center p-6">
+      <div class="hud-pill rounded-3xl p-6 w-full max-w-[320px] text-center flex flex-col gap-4">
+        <div class="font-display text-2xl font-black text-white tracking-wider">PAUSED</div>
+        <p class="text-xs text-slate-300">Engine idling. Take a breather, boss.</p>
+        <button id="btn-resume" class="arcade-btn w-full py-3.5 rounded-2xl text-sm">
+          RESUME RACE
+        </button>
+        <button id="btn-quit-menu" class="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 font-display text-xs font-bold tracking-wider text-slate-200 active:scale-95 transition">
+          MAIN MENU
+        </button>
+      </div>
+    </section>
+
+    <!-- GAME OVER OVERLAY -->
+    <section id="screen-gameover" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-6">
+      <div class="hud-pill rounded-3xl p-6 w-full max-w-[340px] text-center flex flex-col gap-4 border border-pink-500/30 shadow-[0_0_40px_rgba(255,0,127,0.2)]">
+        <div>
+          <div id="new-record-badge" class="hidden inline-block px-3 py-0.5 rounded-full bg-amber-400/20 border border-amber-400 text-amber-300 font-display text-[10px] font-black tracking-widest uppercase mb-1">
+            ★ NAZO! NEW HIGH SCORE ★
+          </div>
+          <h2 class="font-display text-3xl font-black text-white tracking-tight">HAYIBO!</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Eish, you got wrecked. Dust off and go again, boss.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5 bg-slate-950/60 p-3.5 rounded-2xl border border-white/10">
+          <div class="text-left">
+            <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Final Score</div>
+            <div id="over-score" class="font-display text-xl font-black text-cyan-300">0</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Best Score</div>
+            <div id="over-best" class="font-display text-xl font-black text-white">0</div>
+          </div>
+          <div class="text-left pt-1 border-t border-white/10">
+            <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Distance</div>
+            <div id="over-distance" class="font-display text-sm font-bold text-slate-200">0m</div>
+          </div>
+          <div class="text-right pt-1 border-t border-white/10">
+            <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Near Misses</div>
+            <div id="over-nearmiss" class="font-display text-sm font-bold text-pink-400">0</div>
+          </div>
+        </div>
+
+        <!-- Mission Earnings Summary -->
+        <div id="over-missions-summary" class="hidden bg-cyan-950/40 p-2.5 rounded-xl border border-cyan-400/30 text-left text-xs text-cyan-200 flex flex-col gap-1">
+          <div class="font-display font-bold text-[10px] text-cyan-300 uppercase">🎯 Missions Completed This Run:</div>
+          <div id="over-missions-list" class="flex flex-col gap-0.5"></div>
+        </div>
+
+        <div class="flex items-center justify-center gap-2 text-amber-300 font-display text-sm font-bold bg-amber-500/10 py-2 rounded-xl border border-amber-400/20">
+          <span>+R</span>
+          <span id="over-coins">0</span>
+          <span class="text-xs text-amber-200/80 font-sans font-semibold">RANDS EARNED</span>
+        </div>
+
+        <div id="lb-over-box" class="hidden flex flex-col gap-2 bg-pink-950/30 p-3 rounded-2xl border border-pink-500/30 text-left">
+          <div class="font-display font-bold text-[10px] text-pink-300 uppercase">🏆 Post to the leaderboard</div>
+          <div class="flex gap-2">
+            <input id="lb-name-input" type="text" maxlength="14" placeholder="Your name" autocomplete="off" style="user-select: text; -webkit-user-select: text; touch-action: auto;" class="flex-1 min-w-0 bg-slate-900 text-white font-display font-bold text-sm px-3 py-2 rounded-xl border border-white/20 outline-none focus:border-pink-400" />
+            <button id="btn-lb-post" class="px-3 py-2 rounded-xl bg-pink-500 text-white font-display text-xs font-black tracking-wider active:scale-95 transition">POST</button>
+          </div>
+          <div id="lb-over-status" class="text-[11px] text-slate-300 min-h-[14px]"></div>
+        </div>
+
+        <div class="flex flex-col gap-2.5 mt-1">
+          <button id="btn-restart" class="arcade-btn w-full py-4 rounded-2xl text-base uppercase tracking-widest">
+            GO AGAIN ↻
+          </button>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button id="btn-over-garage" class="py-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 font-display text-xs font-bold text-cyan-300 active:scale-95 transition">
+              GARAGE
+            </button>
+            <button id="btn-over-home" class="py-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 font-display text-xs font-bold text-slate-300 active:scale-95 transition">
+              MENU
+            </button>
+          </div>
+          <button id="btn-open-donate" class="hidden mt-0.5 py-2 text-[11px] font-display font-bold tracking-wide text-emerald-300/90 active:scale-95 transition">
+            💚 Enjoying Geetech Drive? Support us
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- LEADERBOARD SCREEN -->
+    <section id="screen-leaderboard" class="hidden absolute inset-0 z-50 bg-slate-950/94 backdrop-blur-md flex flex-col p-5 pt-6 pb-7">
+      <div class="flex items-center justify-between mb-3 shrink-0">
+        <div>
+          <h2 class="font-display text-xl font-black text-white tracking-wide">LEADERBOARD</h2>
+          <p id="lb-status" class="text-[11px] text-slate-400">Top 20 drivers</p>
+        </div>
+        <button id="btn-close-leaderboard" aria-label="Close" class="hud-pill w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg active:scale-90 transition">✕</button>
+      </div>
+      <div id="lb-list" class="flex-1 overflow-y-auto flex flex-col gap-1.5 pr-1" style="touch-action: pan-y;"></div>
+      <button id="lb-refresh" class="mt-3 shrink-0 py-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 font-display text-xs font-bold text-cyan-300 active:scale-95 transition">REFRESH ↻</button>
+    </section>
+
+    <!-- DONATE SCREEN -->
+    <section id="screen-donate" class="hidden absolute inset-0 z-50 bg-slate-950/94 backdrop-blur-md flex flex-col items-center justify-center p-6">
+      <div class="hud-pill rounded-3xl p-6 w-full max-w-[340px] text-center flex flex-col gap-4 border border-emerald-500/30 shadow-[0_0_40px_rgba(16,185,129,0.2)]">
+        <div>
+          <span class="text-3xl">💚</span>
+          <h2 class="font-display text-2xl font-black text-white tracking-tight mt-1">SUPPORT GEETECH</h2>
+          <p class="text-xs text-slate-300 mt-1">Geetech Drive is made in Mzansi, for Mzansi. Donations help fund new cars, cities and tracks. Thank you, boss!</p>
+        </div>
+        <div id="donate-amounts" class="grid grid-cols-4 gap-2"></div>
+        <button id="btn-donate-go" class="arcade-btn w-full py-3 rounded-2xl text-sm uppercase tracking-widest">DONATE 💚</button>
+        <div id="donate-details" class="hidden text-left text-[11px] text-slate-300 bg-white/5 border border-white/10 rounded-xl p-3 leading-relaxed">
+          <div id="donate-details-text"></div>
+          <button id="btn-donate-copy" class="mt-2 w-full py-2 rounded-lg bg-white/10 border border-white/15 font-display text-[10px] font-bold text-emerald-300 active:scale-95 transition">COPY DETAILS</button>
+        </div>
+        <p class="text-[10px] text-slate-500">Donations are optional and give no in-game advantage.</p>
+        <button id="btn-close-donate" class="py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 font-display text-xs font-bold text-slate-200 active:scale-95 transition">BACK</button>
+      </div>
+    </section>
+
+    <section id="screen-locked" class="hidden absolute inset-0 z-[60] bg-slate-950 flex flex-col items-center justify-center p-6 text-center gap-4">
+      <span class="text-5xl">🔒</span>
+      <h2 class="font-display text-2xl font-black text-white">STAGE 2 IS LOCKED</h2>
+      <p class="text-sm text-slate-300 max-w-[280px]">Unlock the BMW 325is Gusheshe in the Geetech Garage to drive the open road.</p>
+      <button class="arcade-btn px-6 py-3 rounded-2xl text-sm uppercase tracking-widest" onclick="location.href='index.html'">BACK TO STAGE 1</button>
+    </section>
+
+    <div id="toast-msg" class="hidden absolute top-20 left-1/2 -translate-x-1/2 z-50 hud-pill px-4 py-2 rounded-full text-xs font-display font-bold text-cyan-300 border border-cyan-400/40 shadow-lg whitespace-nowrap">
+      Message
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. CAR CATALOG & STORAGE MANAGER
+    // ==========================================
+    const CAR_CATALOG = [
+      { id:'VW1', name:'Renault KWID', tag:'STARTER', price:0, unlockDistance:0, bodyColor:0x00b9d6, accentColor:0xff007f, hex:'#00b9d6', handling:1.00, nitroEfficiency:1.00, speedMultiplier:1.00, desc:'Your starter ride. Light, simple and easy to control.' },
+      { id:'VW6', name:'VW Polo R-Line', tag:'SPORT', price:500, unlockDistance:0, bodyColor:0x1675d1, accentColor:0xe9f4ff, hex:'#1675d1', handling:1.05, nitroEfficiency:1.04, speedMultiplier:1.02, desc:'A sporty hatchback with sharper cornering.' },
+      { id:'VW2', name:'VW Golf 8 GTI', tag:'SPORT+', price:800, unlockDistance:0, bodyColor:0xc51f36, accentColor:0xffd166, hex:'#c51f36', handling:1.12, nitroEfficiency:1.06, speedMultiplier:1.04, desc:'Quick response, strong grip and extra pace.' },
+      { id:'AUD', name:'Audi RS3', tag:'PERFORMANCE', price:1000, unlockDistance:0, bodyColor:0xd5a51c, accentColor:0xffffff, hex:'#d5a51c', handling:1.10, nitroEfficiency:1.18, speedMultiplier:1.07, desc:'A performance machine with a powerful nitro system.' },
+      { id:'BMW', name:'BMW 325is Gusheshe', tag:'MZANSI LEGEND', price:1500, unlockDistance:7000, bodyColor:0x9d4edd, accentColor:0x00f5d4, hex:'#9d4edd', handling:1.20, nitroEfficiency:1.22, speedMultiplier:1.08, desc:'The legendary Gusheshe. Earn it with distance and rands.' },
+      { id:'AMG', name:'Mercedes-AMG A45', tag:'HOT HATCH', price:2000, unlockDistance:15000, bodyColor:0x202a36, accentColor:0x00d4ff, hex:'#202a36', handling:1.18, nitroEfficiency:1.16, speedMultiplier:1.10, desc:'All-wheel-drive attitude and serious acceleration.' },
+      { id:'M3', name:'BMW M3', tag:'SUPER SPORT', price:2500, unlockDistance:30000, bodyColor:0x168b58, accentColor:0xffffff, hex:'#168b58', handling:1.22, nitroEfficiency:1.20, speedMultiplier:1.12, desc:'A precision-built street racer for experienced drivers.' },
+      { id:'SUP', name:'Toyota GR Supra', tag:'SUPERCAR', price:3000, unlockDistance:35000, bodyColor:0xe64b24, accentColor:0xffdf70, hex:'#e64b24', handling:1.25, nitroEfficiency:1.22, speedMultiplier:1.14, desc:'Low, wide and fast. A reward for long-distance runs.' },
+      { id:'LAM', name:'Lamborghini Huracán', tag:'LEGENDARY', price:5000, unlockDistance:50000, bodyColor:0xb8d52a, accentColor:0xffffff, hex:'#b8d52a', handling:1.28, nitroEfficiency:1.28, speedMultiplier:1.17, desc:'The ultimate garage trophy. Prove yourself on the highway.' }
+    ];
+
+    const SECTOR_THEMES = [
+      { short: 'KAROO', name: 'KAROO // N1 HIGHWAY', fog: 0x1d0f08, skyTop: '#1f0d06', primary: 0xff9a3c, secondary: 0xffd23f, road: 0x1c130e },
+      { short: 'GARDEN ROUTE', name: 'GARDEN ROUTE // TSITSIKAMMA', fog: 0x06180e, skyTop: '#05150c', primary: 0x3dff8a, secondary: 0x00c2ff, road: 0x0b1a14 },
+      { short: 'DRAKENSBERG', name: 'DRAKENSBERG // CATHEDRAL PEAK', fog: 0x0a1226, skyTop: '#081024', primary: 0x7aa8ff, secondary: 0xe0f2ff, road: 0x0f1626 },
+      { short: 'KRUGER', name: 'KRUGER // GOLDEN SAVANNA', fog: 0x2a1205, skyTop: '#2a1004', primary: 0xffb703, secondary: 0xff4d00, road: 0x1f130b }
+    ];
+
+    const RUN_MISSION_POOL = [
+      { id: 'near_miss_easy', tier: 'Easy', reward: 20, desc: 'Complete 20 near-misses in a single run', target: 20, type: 'nearMisses' },
+      { id: 'distance_easy', tier: 'Easy', reward: 20, desc: 'Drive 8000m in a single run', target: 8000, type: 'distance' },
+      { id: 'coins_easy', tier: 'Easy', reward: 20, desc: 'Collect 15 rands in a single run', target: 15, type: 'coins' },
+
+      { id: 'near_miss_med', tier: 'Medium', reward: 50, desc: 'Complete 50 near-misses in a single run', target: 50, type: 'nearMisses' },
+      { id: 'distance_med', tier: 'Medium', reward: 50, desc: 'Drive 10,500m in a single run', target: 10500, type: 'distance' },
+      { id: 'blackout_med', tier: 'Medium', reward: 10, desc: 'Survive a Load-Shedding blackout', target: 1, type: 'blackouts' },
+
+      { id: 'untouchable_hard', tier: 'Hard', reward: 120, desc: 'Achieve 30 near-misses without taking a hit', target: 30, type: 'nearMisses' },
+      { id: 'distance_hard', tier: 'Hard', reward: 120, desc: 'Drive 50,000m in a single run', target: 50000, type: 'distance' },
+      { id: 'combo_hard', tier: 'Hard', reward: 120, desc: 'Reach a x10 Combo multiplier', target: 10, type: 'combo' }
+    ];
+
+    const LIFETIME_GOALS = [
+      { id: 'lt_nearmiss', title: 'Taxi Dodger', desc: '100 taxi near-misses total', target: 100, reward: 200, key: 'totalNearMisses' },
+      { id: 'lt_distance', title: 'Long Distance Commuter', desc: 'Drive 1000000m total across all runs', target: 1000000, reward: 400, key: 'totalDistance' },
+      { id: 'lt_loadshedding', title: 'Load-Shedding Survivor', desc: 'Survive 10 load-shedding events', target: 10, reward: 300, key: 'totalBlackouts' },
+      { id: 'lt_cars_3', title: 'Small Fleet', desc: 'Own 3 cars', target: 3, reward: 250, key: 'carsOwnedCount' },
+      { id: 'lt_cars_6', title: 'Garage Master', desc: 'Own 6 cars', target: 6, reward: 600, key: 'carsOwnedCount' },
+      { id: 'lt_cars_all', title: 'MZANSI LEGEND', desc: 'Own all 9 cars', target: 9, reward: 1500, key: 'carsOwnedCount' },
+      { id: 'lt_max_upgrades', title: 'Fully Tuned', desc: 'Max one car’s upgrades to Level 3', target: 1, reward: 500, key: 'maxedCarCount' },
+      { id: 'lt_potholes', title: 'Suspension Destroyer', desc: '25 potholes hit (The Joke Goal)', target: 25, reward: 50, key: 'totalPotholes' }
+    ];
+
+    const StorageManager = {
+      key: 'geetech_drive_save_v46',
+      data: {
+        highScore: 0,
+        bestDistance: 0,
+        coins: 0,
+        unlockedCars: ['VW1'],
+        selectedCar: 'VW1',
+        customPlate: 'GEETECH GP',
+        upgrades: {},
+        muted: false,
+        radioStation: 1, // 0 = OFF, 1 = PIANO FM (3 tracks), 2 = HIP-HOP FM (2 tracks)
+        totalNearMisses: 0,
+        totalDistance: 0,
+        totalBlackouts: 0,
+        totalPotholes: 0,
+        activeMissions: [],
+        rerollUsedToday: false,
+        lastActiveDate: '',
+        dailyStreak: 0,
+        claimedDailyToday: false,
+        claimedGoals: []
+      },
+      load() {
+        try {
+          const raw = localStorage.getItem(this.key);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            this.data = { ...this.data, ...parsed };
+            if (!this.data.unlockedCars || this.data.unlockedCars.length === 0) this.data.unlockedCars = ['VW1'];
+            if (!this.data.upgrades || typeof this.data.upgrades !== 'object') this.data.upgrades = {};
+            if (!Array.isArray(this.data.claimedGoals)) this.data.claimedGoals = [];
+            if (!this.data.customPlate) this.data.customPlate = 'GEETECH GP';
+          }
+          this.checkDailyReset();
+          this.ensureActiveMissions();
+        } catch (e) {
+          console.warn('Storage unavailable.');
+        }
+      },
+      save() {
+        try {
+          localStorage.setItem(this.key, JSON.stringify(this.data));
+        } catch (e) {}
+      },
+      checkDailyReset() {
+        const todayStr = new Date().toDateString();
+        if (this.data.lastActiveDate !== todayStr) {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          if (this.data.lastActiveDate !== yesterday.toDateString() && this.data.lastActiveDate !== '') {
+            this.data.dailyStreak = 0;
+          }
+          this.data.rerollUsedToday = false;
+          this.data.claimedDailyToday = false;
+          this.data.lastActiveDate = todayStr;
+          this.save();
+        }
+      },
+      ensureActiveMissions() {
+        if (!Array.isArray(this.data.activeMissions) || this.data.activeMissions.length < 3) {
+          this.generateNewMissions();
+        }
+      },
+      generateNewMissions() {
+        const easy = RUN_MISSION_POOL.filter(m => m.tier === 'Easy');
+        const med = RUN_MISSION_POOL.filter(m => m.tier === 'Medium');
+        const hard = RUN_MISSION_POOL.filter(m => m.tier === 'Hard');
+
+        const pickRandom = (arr) => {
+          const item = arr[Math.floor(Math.random() * arr.length)];
+          return { ...item, progress: 0, completed: false, claimed: false };
+        };
+
+        this.data.activeMissions = [pickRandom(easy), pickRandom(med), pickRandom(hard)];
+        this.data.rerollUsedToday = false;
+        this.save();
+      }
+    };
+
+    StorageManager.load();
+
+    // ==========================================
+    // 2. KASI FM RADIO & PROCEDURAL AUDIO ENGINE
+    //    - PIANO FM: 3 Full Amapiano Tracks
+    //    - HIP-HOP FM: 2 Full Mzansi Hip-Hop Tracks
+    // ==========================================
+    const RADIO_STATIONS = [
+      { id: 0, label: 'RADIO OFF', tracks: [] },
+      {
+        id: 1,
+        label: 'PIANO FM',
+        tracks: [
+          {
+            title: '1/3 · SOWETO LOG DRUM',
+            genre: 'AMAPIANO',
+            bpm: 112,
+            // 64-step (4-bar) syncopated log drum bassline (Hz)
+            bass: {
+              0: 65.41, 3: 65.41, 6: 77.78, 10: 58.27, 12: 65.41, 14: 87.31,
+              16: 65.41, 19: 65.41, 22: 77.78, 25: 98.00, 28: 77.78, 30: 58.27,
+              32: 58.27, 35: 58.27, 38: 73.42, 42: 51.91, 44: 58.27, 46: 77.78,
+              48: 65.41, 51: 77.78, 54: 98.00, 57: 116.54, 60: 98.00, 62: 77.78
+            },
+            chords: {
+              0: [261.63, 311.13, 392.00, 466.16],  // Cm7
+              16: [233.08, 293.66, 349.23, 415.30], // Bbmaj7
+              32: [207.65, 261.63, 311.13, 392.00], // Abmaj7
+              48: [196.00, 233.08, 293.66, 349.23]  // Gm7
+            },
+            lead: { 12: 523.25, 14: 587.33, 28: 622.25, 44: 466.16, 60: 523.25, 62: 622.25 }
+          },
+          {
+            title: '2/3 · GROOVE IN PTA (SGIJA)',
+            genre: 'AMAPIANO',
+            bpm: 114,
+            bass: {
+              0: 55.00, 2: 55.00, 3: 82.41, 6: 65.41, 8: 55.00, 11: 73.42, 14: 82.41,
+              16: 55.00, 18: 55.00, 19: 98.00, 22: 82.41, 24: 65.41, 27: 73.42, 30: 82.41,
+              32: 49.00, 34: 49.00, 35: 73.42, 38: 58.27, 40: 49.00, 43: 65.41, 46: 73.42,
+              48: 55.00, 51: 65.41, 54: 73.42, 56: 82.41, 58: 98.00, 60: 82.41, 62: 65.41
+            },
+            chords: {
+              0: [220.00, 261.63, 329.63, 392.00],  // Am7
+              16: [220.00, 261.63, 329.63, 440.00], // Am
+              32: [196.00, 246.94, 293.66, 349.23], // G7
+              48: [174.61, 220.00, 261.63, 329.63]  // Fmaj7
+            },
+            lead: { 6: 659.25, 14: 783.99, 22: 659.25, 30: 880.00, 38: 587.33, 54: 659.25, 60: 783.99 }
+          },
+          {
+            title: '3/3 · DURBAN SUNSET (PRIVATE)',
+            genre: 'AMAPIANO',
+            bpm: 111,
+            bass: {
+              0: 73.42, 4: 73.42, 7: 87.31, 10: 110.00, 14: 87.31,
+              16: 65.41, 20: 65.41, 23: 77.78, 26: 98.00, 30: 77.78,
+              32: 58.27, 36: 58.27, 39: 73.42, 42: 87.31, 46: 73.42,
+              48: 65.41, 51: 73.42, 54: 87.31, 58: 110.00, 61: 98.00
+            },
+            chords: {
+              0: [293.66, 349.23, 440.00, 523.25],  // Dm7
+              16: [261.63, 311.13, 392.00, 466.16], // Cm7
+              32: [233.08, 293.66, 349.23, 440.00], // Bbmaj7
+              48: [220.00, 277.18, 329.63, 392.00]  // A7
+            },
+            lead: { 4: 587.33, 12: 659.25, 20: 523.25, 28: 587.33, 36: 466.16, 52: 554.37, 60: 659.25 }
+          }
+        ]
+      },
+      {
+        id: 2,
+        label: 'HIP-HOP FM',
+        tracks: [
+          {
+            title: '1/2 · KASI TRAP 808',
+            genre: 'HIPHOP',
+            bpm: 138,
+            // Heavy sliding 808 bassline
+            bass: {
+              0: 41.20, 6: 41.20, 10: 49.00, 14: 55.00,
+              16: 41.20, 22: 41.20, 26: 61.74, 30: 49.00,
+              32: 36.71, 38: 36.71, 42: 41.20, 46: 49.00,
+              48: 41.20, 54: 55.00, 58: 65.41, 62: 49.00
+            },
+            chords: {
+              0: [164.81, 196.00, 246.94], // Em
+              32: [146.83, 174.61, 220.00] // Dm
+            },
+            lead: {
+              0: 659.25, 2: 783.99, 4: 987.77, 8: 783.99, 12: 659.25,
+              16: 659.25, 18: 783.99, 20: 1046.50, 24: 987.77, 28: 783.99,
+              32: 587.33, 34: 698.46, 36: 880.00, 40: 698.46, 44: 587.33,
+              48: 659.25, 50: 783.99, 52: 987.77, 56: 1174.66, 60: 987.77
+            }
+          },
+          {
+            title: '2/2 · BOOM BAP JOZI',
+            genre: 'HIPHOP',
+            bpm: 94,
+            // Classic soulful Hip-Hop bass groove
+            bass: {
+              0: 55.00, 3: 55.00, 7: 65.41, 10: 73.42, 14: 65.41,
+              16: 49.00, 19: 49.00, 23: 58.27, 26: 65.41, 30: 58.27,
+              32: 43.65, 35: 43.65, 39: 55.00, 42: 65.41, 46: 55.00,
+              48: 41.20, 51: 49.00, 54: 55.00, 58: 65.41, 62: 49.00
+            },
+            chords: {
+              0: [220.00, 261.63, 329.63, 392.00],  // Am7
+              16: [196.00, 246.94, 293.66, 349.23], // G7
+              32: [174.61, 220.00, 261.63, 329.63], // Fmaj7
+              48: [164.81, 207.65, 246.94, 329.63]  // E7
+            },
+            lead: {
+              2: 440.00, 6: 523.25, 10: 659.25, 18: 392.00, 22: 493.88,
+              34: 349.23, 38: 440.00, 50: 329.63, 54: 415.30, 60: 493.88
+            }
+          }
+        ]
+      }
+    ];
+
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = StorageManager.data.muted;
+        this.radioStation = StorageManager.data.radioStation ?? 1;
+        this.trackIndex = 0;
+        this.barRepeatCount = 0;
+
+        this.engineOsc = null;
+        this.engineGain = null;
+        this.musicGain = null;
+        this.isRunning = false;
+
+        this.stepIndex = 0;
+        this.nextNoteTime = 0;
+        this.schedulerTimer = null;
+      }
+
+      init() {
+        if (this.ctx) return;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        this.ctx = new AudioContext();
+
+        this.engineOsc = this.ctx.createOscillator();
+        this.engineOsc.type = 'sawtooth';
+        this.engineOsc.frequency.value = 55;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 240;
+
+        this.engineGain = this.ctx.createGain();
+        this.engineGain.gain.value = 0.0;
+
+        this.engineOsc.connect(filter);
+        filter.connect(this.engineGain);
+        this.engineGain.connect(this.ctx.destination);
+        this.engineOsc.start();
+
+        this.musicGain = this.ctx.createGain();
+        this.musicGain.gain.value = (this.muted || this.radioStation === 0) ? 0 : 0.44;
+        this.musicGain.connect(this.ctx.destination);
+
+        this.startRadioSequencer();
+      }
+
+      resume() {
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      getCurrentStation() {
+        return RADIO_STATIONS[this.radioStation] || RADIO_STATIONS[0];
+      }
+
+      getCurrentTrack() {
+        const st = this.getCurrentStation();
+        if (!st.tracks || st.tracks.length === 0) return null;
+        return st.tracks[this.trackIndex % st.tracks.length];
+      }
+
+      cycleRadio() {
+        this.init();
+        this.resume();
+        this.radioStation = (this.radioStation + 1) % RADIO_STATIONS.length;
+        this.trackIndex = 0;
+        this.stepIndex = 0;
+        this.barRepeatCount = 0;
+        StorageManager.data.radioStation = this.radioStation;
+        StorageManager.save();
+
+        if (this.musicGain && this.ctx) {
+          const vol = (this.muted || this.radioStation === 0) ? 0 : 0.44;
+          this.musicGain.gain.setTargetAtTime(vol, this.ctx.currentTime, 0.08);
+        }
+        return this.getCurrentTrack();
+      }
+
+      nextTrack() {
+        this.init();
+        this.resume();
+        if (this.radioStation === 0) {
+          this.radioStation = 1;
+          StorageManager.data.radioStation = 1;
+          StorageManager.save();
+        }
+        const st = this.getCurrentStation();
+        this.trackIndex = (this.trackIndex + 1) % st.tracks.length;
+        this.stepIndex = 0;
+        this.barRepeatCount = 0;
+
+        if (this.musicGain && this.ctx && !this.muted) {
+          this.musicGain.gain.setTargetAtTime(0.44, this.ctx.currentTime, 0.08);
+        }
+        return this.getCurrentTrack();
+      }
+
+      setBlackoutDucking(isBlackout) {
+        if (!this.musicGain || !this.ctx || this.muted || this.radioStation === 0) return;
+        const targetVol = isBlackout ? 0.16 : 0.44;
+        this.musicGain.gain.setTargetAtTime(targetVol, this.ctx.currentTime, 0.25);
+      }
+
+      setMuted(mute) {
+        this.muted = mute;
+        StorageManager.data.muted = mute;
+        StorageManager.save();
+        if (this.engineGain && this.ctx) {
+          this.engineGain.gain.setTargetAtTime(mute || !this.isRunning ? 0 : 0.055, this.ctx.currentTime, 0.08);
+        }
+        if (this.musicGain && this.ctx) {
+          const targetMusic = (mute || this.radioStation === 0) ? 0 : 0.44;
+          this.musicGain.gain.setTargetAtTime(targetMusic, this.ctx.currentTime, 0.08);
+        }
+      }
+
+      startRadioSequencer() {
+        if (this.schedulerTimer) return;
+        this.nextNoteTime = this.ctx.currentTime + 0.05;
+
+        this.schedulerTimer = setInterval(() => {
+          const track = this.getCurrentTrack();
+          if (!this.ctx || this.muted || !track) {
+            this.nextNoteTime = this.ctx ? this.ctx.currentTime + 0.05 : 0;
+            return;
+          }
+          const sixteenth = (60 / track.bpm) / 4;
+
+          while (this.nextNoteTime < this.ctx.currentTime + 0.12) {
+            this.scheduleTrackStep(track, this.stepIndex, this.nextNoteTime, sixteenth);
+            this.nextNoteTime += sixteenth;
+            this.stepIndex++;
+
+            if (this.stepIndex >= 64) {
+              this.stepIndex = 0;
+              this.barRepeatCount++;
+              // Auto-advance to next song on the station after 4 full loops (~32 seconds)
+              if (this.barRepeatCount >= 4) {
+                this.barRepeatCount = 0;
+                const st = this.getCurrentStation();
+                if (st.tracks.length > 1) {
+                  this.trackIndex = (this.trackIndex + 1) % st.tracks.length;
+                  const next = this.getCurrentTrack();
+                  if (next && typeof showToast === 'function') {
+                    showToast(`📻 NOW PLAYING: ${next.title}`);
+                  }
+                }
+              }
+            }
+          }
+        }, 25);
+      }
+
+      scheduleTrackStep(track, step, time, stepDur) {
+        const barStep = step % 16;
+
+        if (track.genre === 'AMAPIANO') {
+          // 1. 4-on-the-floor Amapiano Kick
+          if (barStep % 4 === 0) {
+            this.triggerKick(time, 125, 42, 0.38);
+          }
+          // 2. Signature Shaker & Hat Groove
+          if (barStep % 2 === 1 || barStep === 14) {
+            this.triggerShaker(time, barStep % 4 === 2 ? 0.095 : 0.045, 0.045);
+          }
+          // 3. Log Drum Bassline
+          if (track.bass[step]) {
+            this.triggerLogDrum(time, track.bass[step], stepDur * 2.3);
+          }
+          // 4. Rhodes Jazz Chords
+          if (track.chords[step]) {
+            this.triggerRhodesChord(time, track.chords[step], stepDur * 14);
+          }
+          // 5. Piano / Whistle Synth Accent
+          if (track.lead[step]) {
+            this.triggerSynthPluck(time, track.lead[step], stepDur * 1.8, 'triangle', 0.075);
+          }
+        } else {
+          // HIP-HOP STATION (Trap 808 or Boom Bap)
+          const isTrap = track.bpm > 115;
+
+          // 1. Kick Pattern
+          if (isTrap) {
+            if (barStep === 0 || barStep === 7 || barStep === 10) {
+              this.triggerKick(time, 140, 38, 0.44);
+            }
+          } else {
+            if (barStep === 0 || barStep === 2 || barStep === 7 || barStep === 10) {
+              this.triggerKick(time, 130, 44, 0.44);
+            }
+          }
+
+          // 2. Crisp Snare / Clap on beats 2 & 4 (steps 4 & 12 in Boom Bap, step 8 in half-time Trap)
+          if (isTrap) {
+            if (barStep === 8) this.triggerSnare(time, 0.24);
+          } else {
+            if (barStep === 4 || barStep === 12) this.triggerSnare(time, 0.26);
+          }
+
+          // 3. Hi-Hats (Trap rapid rolls vs Boom Bap swung hats)
+          if (isTrap) {
+            this.triggerShaker(time, barStep % 2 === 0 ? 0.07 : 0.035, 0.025);
+            if (barStep === 13 || barStep === 14 || barStep === 15) {
+              this.triggerShaker(time + stepDur * 0.5, 0.05, 0.02);
+            }
+          } else {
+            if (barStep % 2 === 0) this.triggerShaker(time, 0.065, 0.035);
+          }
+
+          // 4. Heavy 808 / Sub Bass
+          if (track.bass[step]) {
+            this.trigger808Bass(time, track.bass[step], stepDur * (isTrap ? 4.5 : 3.0));
+          }
+
+          // 5. Chords & Dark Bell / Soul Sample Lead
+          if (track.chords[step]) {
+            this.triggerRhodesChord(time, track.chords[step], stepDur * 16);
+          }
+          if (track.lead[step]) {
+            this.triggerSynthPluck(time, track.lead[step], stepDur * 1.6, isTrap ? 'sine' : 'triangle', 0.085);
+          }
+        }
+      }
+
+      triggerKick(time, startFreq, endFreq, vol) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(startFreq, time);
+        osc.frequency.exponentialRampToValueAtTime(endFreq, time + 0.11);
+        gain.gain.setValueAtTime(vol, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+        osc.connect(gain);
+        gain.connect(this.musicGain);
+        osc.start(time);
+        osc.stop(time + 0.19);
+      }
+
+      triggerSnare(time, vol) {
+        // Noise burst + tonal body snap
+        const bufferSize = Math.floor(this.ctx.sampleRate * 0.14);
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.35));
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 1800;
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(vol, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.13);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.musicGain);
+        noise.start(time);
+
+        const snap = this.ctx.createOscillator();
+        const snapGain = this.ctx.createGain();
+        snap.type = 'triangle';
+        snap.frequency.setValueAtTime(210, time);
+        snap.frequency.exponentialRampToValueAtTime(95, time + 0.06);
+        snapGain.gain.setValueAtTime(vol * 0.7, time);
+        snapGain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
+        snap.connect(snapGain);
+        snapGain.connect(this.musicGain);
+        snap.start(time);
+        snap.stop(time + 0.08);
+      }
+
+      triggerLogDrum(time, freq, duration) {
+        const osc = this.ctx.createOscillator();
+        const clickOsc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const filter = this.ctx.createBiquadFilter();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq * 1.95, time);
+        osc.frequency.exponentialRampToValueAtTime(freq, time + 0.045);
+
+        clickOsc.type = 'sine';
+        clickOsc.frequency.setValueAtTime(freq * 4, time);
+        clickOsc.frequency.exponentialRampToValueAtTime(freq, time + 0.025);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(480, time);
+        filter.frequency.exponentialRampToValueAtTime(160, time + duration);
+
+        gain.gain.setValueAtTime(0.001, time);
+        gain.gain.linearRampToValueAtTime(0.56, time + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+        osc.connect(filter);
+        clickOsc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.musicGain);
+
+        osc.start(time);
+        clickOsc.start(time);
+        osc.stop(time + duration + 0.02);
+        clickOsc.stop(time + 0.04);
+      }
+
+      trigger808Bass(time, freq, duration) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq * 1.35, time);
+        osc.frequency.exponentialRampToValueAtTime(freq, time + 0.055);
+
+        gain.gain.setValueAtTime(0.001, time);
+        gain.gain.linearRampToValueAtTime(0.52, time + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+        osc.connect(gain);
+        gain.connect(this.musicGain);
+        osc.start(time);
+        osc.stop(time + duration + 0.03);
+      }
+
+      triggerShaker(time, volume, dur) {
+        const bufferSize = Math.floor(this.ctx.sampleRate * dur);
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'highpass';
+        filter.frequency.value = 6500;
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(volume, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + dur * 0.9);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.musicGain);
+        noise.start(time);
+      }
+
+      triggerRhodesChord(time, notes, duration) {
+        notes.forEach((freq) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, time);
+
+          gain.gain.setValueAtTime(0.001, time);
+          gain.gain.linearRampToValueAtTime(0.05, time + 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+          osc.connect(gain);
+          gain.connect(this.musicGain);
+          osc.start(time);
+          osc.stop(time + duration + 0.05);
+        });
+      }
+
+      triggerSynthPluck(time, freq, duration, type, vol) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, time);
+
+        gain.gain.setValueAtTime(0.001, time);
+        gain.gain.linearRampToValueAtTime(vol, time + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+        osc.connect(gain);
+        gain.connect(this.musicGain);
+        osc.start(time);
+        osc.stop(time + duration + 0.03);
+      }
+
+      setEngineActive(active) {
+        this.isRunning = active;
+        if (!this.ctx || !this.engineGain) return;
+        const target = (!this.muted && active) ? 0.05 : 0.0;
+        this.engineGain.gain.setTargetAtTime(target, this.ctx.currentTime, 0.1);
+      }
+
+      updateEnginePitch(speedRatio, isNitro) {
+        if (!this.ctx || !this.engineOsc || this.muted || !this.isRunning) return;
+        const baseFreq = 52 + speedRatio * 75 + (isNitro ? 42 : 0);
+        this.engineOsc.frequency.setTargetAtTime(baseFreq, this.ctx.currentTime, 0.06);
+      }
+
+      playCoin() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.setValueAtTime(1318.5, now + 0.065);
+        gain.gain.setValueAtTime(0.14, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      }
+
+      playNearMiss() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(920, now + 0.14);
+        osc.frequency.exponentialRampToValueAtTime(240, now + 0.32);
+        gain.gain.setValueAtTime(0.16, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.35);
+      }
+
+      playSteer() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(190, now);
+        osc.frequency.exponentialRampToValueAtTime(110, now + 0.07);
+        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      }
+
+      playCrash() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const bufferSize = this.ctx.sampleRate * 0.55;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.35));
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(650, now);
+        filter.frequency.exponentialRampToValueAtTime(70, now + 0.5);
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.32, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start(now);
+      }
+
+      playTaxiHorn() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        [0, 0.14].forEach((offset) => {
+          const osc1 = this.ctx.createOscillator();
+          const osc2 = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc1.type = 'sawtooth';
+          osc2.type = 'square';
+          osc1.frequency.setValueAtTime(520, now + offset);
+          osc2.frequency.setValueAtTime(655, now + offset);
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.frequency.value = 900;
+          gain.gain.setValueAtTime(0.09, now + offset);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.1);
+          osc1.connect(filter);
+          osc2.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc1.start(now + offset);
+          osc2.start(now + offset);
+          osc1.stop(now + offset + 0.11);
+          osc2.stop(now + offset + 0.11);
+        });
+      }
+
+      playBlackoutDown() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.exponentialRampToValueAtTime(42, now + 0.65);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.68);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.7);
+      }
+
+      playPowerRestored() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const freqs = [330, 440, 659.25];
+        freqs.forEach((f, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(f, now + idx * 0.07);
+          gain.gain.setValueAtTime(0.11, now + idx * 0.07);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.07);
+          osc.stop(now + idx * 0.07 + 0.36);
+        });
+      }
+
+      playThunder() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const bufferSize = this.ctx.sampleRate * 1.2;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.45));
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(180, now);
+        filter.frequency.exponentialRampToValueAtTime(40, now + 1.1);
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.28, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.15);
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start(now);
+      }
+    }
+
+    const sound = new SoundEngine();
+
+    // ==========================================
+    // 3. THREE.JS 3D GAME ENGINE
+    // ==========================================
+    const canvas = document.getElementById('game-canvas');
+    const shell = document.getElementById('app-shell');
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      powerPreference: 'high-performance'
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(SECTOR_THEMES[0].fog, 0.0115);
+    scene.background = new THREE.Color(SECTOR_THEMES[0].fog);
+
+    const camera = new THREE.PerspectiveCamera(64, 1, 0.1, 220);
+    camera.position.set(0, 4.4, 8.8);
+    camera.lookAt(0, 1.3, -18);
+
+    function handleResize() {
+      const width = shell.clientWidth;
+      const height = shell.clientHeight;
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.fov = camera.aspect < 0.62 ? 68 : 60;
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+    dirLight.position.set(8, 18, 12);
+    scene.add(dirLight);
+
+    const playerUnderglow = new THREE.PointLight(0x00f3ff, 2.2, 12);
+    playerUnderglow.position.set(0, 0.6, 0);
+    scene.add(playerUnderglow);
+
+    const headLightLeft = new THREE.SpotLight(0xfff6d6, 0, 75, Math.PI / 5.2, 0.45, 1.1);
+    const headLightRight = new THREE.SpotLight(0xfff6d6, 0, 75, Math.PI / 5.2, 0.45, 1.1);
+    const headLightTargetL = new THREE.Object3D();
+    const headLightTargetR = new THREE.Object3D();
+    scene.add(headLightLeft, headLightRight, headLightTargetL, headLightTargetR);
+    headLightLeft.target = headLightTargetL;
+    headLightRight.target = headLightTargetR;
+
+    const beamConeGeo = new THREE.ConeGeometry(2.6, 22, 20, 1, true);
+    beamConeGeo.translate(0, -11, 0);
+    beamConeGeo.rotateX(Math.PI / 2);
+    const beamConeMat = new THREE.MeshBasicMaterial({
+      color: 0xfff3b0, transparent: true, opacity: 0.0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending
+    });
+    const leftBeamCone = new THREE.Mesh(beamConeGeo, beamConeMat);
+    const rightBeamCone = new THREE.Mesh(beamConeGeo, beamConeMat);
+    scene.add(leftBeamCone, rightBeamCone);
+
+    const LANE_WIDTH = 2.4;
+    const LANES = [-2 * LANE_WIDTH, -LANE_WIDTH, 0, LANE_WIDTH, 2 * LANE_WIDTH];
+    const ROAD_WIDTH = LANE_WIDTH * 5.4;
+    const ROAD_LENGTH = 260;
+
+    const roadGeo = new THREE.PlaneGeometry(ROAD_WIDTH, ROAD_LENGTH);
+    const roadMat = new THREE.MeshStandardMaterial({ color: 0x111324, roughness: 0.45, metalness: 0.35 });
+    const roadMesh = new THREE.Mesh(roadGeo, roadMat);
+    roadMesh.rotation.x = -Math.PI / 2;
+    roadMesh.position.z = -ROAD_LENGTH / 2 + 20;
+    scene.add(roadMesh);
+
+    const railGeo = new THREE.BoxGeometry(0.32, 0.55, ROAD_LENGTH);
+    const railMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff });
+    const leftRail = new THREE.Mesh(railGeo, railMat);
+    leftRail.position.set(-ROAD_WIDTH / 2 - 0.16, 0.27, -ROAD_LENGTH / 2 + 20);
+    scene.add(leftRail);
+
+    const rightRail = new THREE.Mesh(railGeo, railMat);
+    rightRail.position.set(ROAD_WIDTH / 2 + 0.16, 0.27, -ROAD_LENGTH / 2 + 20);
+    scene.add(rightRail);
+
+    const rainCount = 800;
+    const rainGeo = new THREE.BufferGeometry();
+    const rainPositions = new Float32Array(rainCount * 3);
+    for (let i = 0; i < rainCount * 3; i += 3) {
+      rainPositions[i] = (Math.random() - 0.5) * 45;
+      rainPositions[i + 1] = Math.random() * 30;
+      rainPositions[i + 2] = (Math.random() - 0.5) * 200;
+    }
+    rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPositions, 3));
+    const rainMat = new THREE.PointsMaterial({
+      color: 0x00f3ff,
+      size: 0.18,
+      transparent: true,
+      opacity: 0.65,
+      blending: THREE.AdditiveBlending
+    });
+    const rainSystem = new THREE.Points(rainGeo, rainMat);
+    rainSystem.visible = false;
+    scene.add(rainSystem);
+
+    const laneLines = [];
+    const dashGeo = new THREE.PlaneGeometry(0.14, 3.4);
+    const dashMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.42 });
+    const dividerX = [-1.5 * LANE_WIDTH, -0.5 * LANE_WIDTH, 0.5 * LANE_WIDTH, 1.5 * LANE_WIDTH];
+
+    for (let z = 15; z > -210; z -= 9) {
+      dividerX.forEach((xPos) => {
+        const dash = new THREE.Mesh(dashGeo, dashMat);
+        dash.rotation.x = -Math.PI / 2;
+        dash.position.set(xPos, 0.02, z);
+        scene.add(dash);
+        laneLines.push(dash);
+      });
+    }
+
+    const tunnelArches = [];
+    const archMat = new THREE.MeshBasicMaterial({ color: 0xff007f });
+    const archSecondaryMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff });
+
+    function createTunnelArch(zPos, index) {
+      const group = new THREE.Group();
+      const halfW = ROAD_WIDTH / 2 + 0.6;
+      const height = 8.4;
+      const pillarGeo = new THREE.BoxGeometry(0.35, height, 0.45);
+      const topGeo = new THREE.BoxGeometry(halfW * 2 + 0.35, 0.35, 0.45);
+      const mat = index % 2 === 0 ? archMat : archSecondaryMat;
+      const leftPillar = new THREE.Mesh(pillarGeo, mat);
+      leftPillar.position.set(-halfW, height / 2, 0);
+      const rightPillar = new THREE.Mesh(pillarGeo, mat);
+      rightPillar.position.set(halfW, height / 2, 0);
+      const topBeam = new THREE.Mesh(topGeo, mat);
+      topBeam.position.set(0, height, 0);
+      group.add(leftPillar, rightPillar, topBeam);
+      group.position.z = zPos;
+      scene.add(group);
+      return group;
+    }
+
+    for (let i = 0; i < 14; i++) {
+      tunnelArches.push(createTunnelArch(10 - i * 18, i));
+    }
+
+    const sunGeo = new THREE.CircleGeometry(24, 32);
+    const sunMat = new THREE.MeshBasicMaterial({ color: 0xff007f, fog: false });
+    const horizonSun = new THREE.Mesh(sunGeo, sunMat);
+    horizonSun.position.set(0, 14, -185);
+    scene.add(horizonSun);
+
+    const skylineRoot = new THREE.Group();
+    scene.add(skylineRoot);
+    const skylines = [];
+    const lm = (c, op) => new THREE.MeshBasicMaterial({ color: c, fog: false, transparent: op !== undefined, opacity: op === undefined ? 1 : op });
+    const SKY_Z = -180;
+
+    function makeSkyline(build) {
+      const g = new THREE.Group();
+      g.position.z = SKY_Z;
+      const ground = new THREE.Mesh(new THREE.BoxGeometry(320, 1.2, 14), lm(0x05050c));
+      ground.position.y = -0.6;
+      g.add(ground);
+      build(g);
+      g.visible = false;
+      skylineRoot.add(g);
+      skylines.push(g);
+    }
+
+    makeSkyline((g) => { // KAROO: flat-topped koppies + windmill
+      [[-40,14,10],[-22,20,16],[26,16,12],[44,22,14]].forEach(([x,h,w]) => {
+        const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,6), lm(0x3a1d12)); m.position.set(x,h/2,0); g.add(m);
+        const cap = new THREE.Mesh(new THREE.BoxGeometry(w+2,1.6,7), lm(0x7a3b1d)); cap.position.set(x,h+0.8,0); g.add(cap);
+      });
+      const pole = new THREE.Mesh(new THREE.BoxGeometry(0.5,14,0.5), lm(0xcccccc)); pole.position.set(2,7,2); g.add(pole);
+      for (let i=0;i<4;i++){ const b=new THREE.Mesh(new THREE.BoxGeometry(0.4,6,0.2), lm(0xeeeeee)); b.position.set(2,14,2.3); b.rotation.z=i*Math.PI/2+0.4; b.geometry.translate(0,3,0); g.add(b); }
+    });
+
+    makeSkyline((g) => { // GARDEN ROUTE: green hills + lighthouse
+      [[-45,26,9],[-18,34,11],[14,30,10],[42,28,8]].forEach(([x,w,h]) => {
+        const hill = new THREE.Mesh(new THREE.SphereGeometry(1,16,8,0,Math.PI*2,0,Math.PI/2), lm(0x0f3d22)); hill.scale.set(w,h,5); hill.position.set(x,0,0); g.add(hill);
+      });
+      const tower = new THREE.Mesh(new THREE.CylinderGeometry(1.6,2.4,16,14), lm(0xf5f5f5)); tower.position.set(30,8,2); g.add(tower);
+      const band = new THREE.Mesh(new THREE.CylinderGeometry(1.9,2.0,3,14), lm(0xe63946)); band.position.set(30,9,2); g.add(band);
+      const lamp = new THREE.Mesh(new THREE.SphereGeometry(1.6,12,8), lm(0xffe066)); lamp.position.set(30,17,2); g.add(lamp);
+    });
+
+    makeSkyline((g) => { // DRAKENSBERG: jagged peaks with snow caps
+      const pts = [[-70,0],[-56,16],[-48,12],[-36,34],[-26,22],[-14,40],[-4,24],[8,30],[20,44],[32,26],[44,34],[56,14],[70,0]];
+      const shape = new THREE.Shape(); shape.moveTo(pts[0][0],pts[0][1]); pts.slice(1).forEach(([x,y]) => shape.lineTo(x,y)); shape.closePath();
+      g.add(new THREE.Mesh(new THREE.ShapeGeometry(shape), lm(0x101a35)));
+      [[-36,34],[-14,40],[20,44],[44,34]].forEach(([x,y]) => {
+        const cap = new THREE.Mesh(new THREE.ConeGeometry(3.2,6,4), lm(0xe9f3ff)); cap.position.set(x,y-2.4,0.5); g.add(cap);
+      });
+    });
+
+    makeSkyline((g) => { // KRUGER: acacia trees + baobab
+      [[-38,1],[-20,0.8],[18,1.1],[40,0.9]].forEach(([x,k]) => {
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.5*k,0.8*k,9*k,8), lm(0x2b1608)); trunk.position.set(x,4.5*k,0); g.add(trunk);
+        const crown = new THREE.Mesh(new THREE.SphereGeometry(1,14,8), lm(0x1d3a12)); crown.scale.set(9*k,2.2*k,3); crown.position.set(x,10*k,0); g.add(crown);
+      });
+      const bao = new THREE.Mesh(new THREE.CylinderGeometry(3.4,4.6,14,14), lm(0x4a3320)); bao.position.set(2,7,-2); g.add(bao);
+      for (let i=-2;i<=2;i++){ const br=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.5,5,6), lm(0x4a3320)); br.position.set(2+i*1.6,16.5,-2); br.rotation.z=-i*0.35; g.add(br); }
+    });
+
+        const playerCar = new THREE.Group();
+    scene.add(playerCar);
+
+    let playerBodyMat = new THREE.MeshStandardMaterial({ color: 0x00f3ff, roughness: 0.25, metalness: 0.65 });
+    let playerAccentMat = new THREE.MeshStandardMaterial({ color: 0xff007f, roughness: 0.3, metalness: 0.55 });
+    let flameLeft, flameRight, shieldSphere;
+    let playerWheels = [];
+    let customPlateMesh = null;
+
+    function createLicensePlateTexture(text) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256; canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffbe0b';
+      ctx.fillRect(0, 0, 256, 128);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 34px Orbitron, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text || 'GEETECH GP', 128, 64);
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 8;
+      ctx.strokeRect(0, 0, 256, 128);
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    function makeRoundedPanel(width, height, depth, radius, material, bevel = 0.035) {
+      const x = width / 2, y = height / 2, r = Math.min(radius, x * 0.8, y * 0.8);
+      const shape = new THREE.Shape();
+      shape.moveTo(-x + r, -y);
+      shape.lineTo(x - r, -y); shape.quadraticCurveTo(x, -y, x, -y + r);
+      shape.lineTo(x, y - r); shape.quadraticCurveTo(x, y, x - r, y);
+      shape.lineTo(-x + r, y); shape.quadraticCurveTo(-x, y, -x, y - r);
+      shape.lineTo(-x, -y + r); shape.quadraticCurveTo(-x, -y, -x + r, -y);
+      const geo = new THREE.ExtrudeGeometry(shape, {
+        depth, steps: 1, bevelEnabled: bevel > 0, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 3, curveSegments: 5
+      });
+      geo.translate(0, 0, -depth / 2);
+      const mesh = new THREE.Mesh(geo, material);
+      mesh.castShadow = true; mesh.receiveShadow = true;
+      return mesh;
+    }
+
+    function makeCabin(width, height, depth, material, bevel = 0.025) {
+      const shape = new THREE.Shape();
+      shape.moveTo(-width * 0.50, 0);
+      shape.lineTo(width * 0.50, 0);
+      shape.lineTo(width * 0.39, height);
+      shape.quadraticCurveTo(0, height + 0.045, -width * 0.39, height);
+      shape.closePath();
+      const geo = new THREE.ExtrudeGeometry(shape, {
+        depth, bevelEnabled: true, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 3, steps: 1
+      });
+      geo.translate(0, 0, -depth / 2);
+      const mesh = new THREE.Mesh(geo, material);
+      mesh.castShadow = true; mesh.receiveShadow = true;
+      return mesh;
+    }
+
+    function buildPlayerCar(carSpec) {
+      while (playerCar.children.length > 0) {
+        const child = playerCar.children[0];
+        playerCar.remove(child);
+        if (child.geometry) child.geometry.dispose();
+      }
+      playerWheels = [];
+
+      const bodyMat = new THREE.MeshStandardMaterial({ color: carSpec.bodyColor, roughness: 0.22, metalness: 0.68, envMapIntensity: 1.0 });
+      playerBodyMat = bodyMat;
+      playerAccentMat = new THREE.MeshStandardMaterial({ color: carSpec.accentColor, roughness: 0.28, metalness: 0.62 });
+      playerUnderglow.color.setHex(carSpec.bodyColor);
+
+      const glassMat = new THREE.MeshStandardMaterial({ color: 0x142638, roughness: 0.12, metalness: 0.18, transparent: true, opacity: 0.92 });
+      const rubberMat = new THREE.MeshStandardMaterial({ color: 0x080a0e, roughness: 0.94, metalness: 0.02 });
+      const rimMat = new THREE.MeshStandardMaterial({ color: 0xc7d0d8, roughness: 0.2, metalness: 0.94 });
+      const discMat = new THREE.MeshStandardMaterial({ color: 0x68717c, roughness: 0.55, metalness: 0.82 });
+      const lampMat = new THREE.MeshStandardMaterial({ color: 0xfff4d4, emissive: 0xffd98a, emissiveIntensity: 1.25, roughness: 0.18 });
+      const tailMat = new THREE.MeshStandardMaterial({ color: 0xb50024, emissive: 0xff002f, emissiveIntensity: 1.0, roughness: 0.25 });
+
+      const add = (mesh, x, y, z) => { mesh.position.set(x, y, z); playerCar.add(mesh); return mesh; };
+      const box = (w,h,d,x,y,z,mat, bevel=0.025) => add(makeRoundedPanel(w,h,d,Math.min(bevel*2, h*0.3),mat,bevel),x,y,z);
+
+      const profiles = {
+        VW1: { width:1.68, length:3.25, cabinW:1.34, cabinH:0.48, cabinD:1.48, wheel:0.32, ride:0.43, roof:0.0 },
+        VW6: { width:1.78, length:3.72, cabinW:1.40, cabinH:0.52, cabinD:1.68, wheel:0.35, ride:0.42, roof:0.02 },
+        VW2: { width:1.82, length:3.82, cabinW:1.43, cabinH:0.54, cabinD:1.72, wheel:0.36, ride:0.42, roof:0.03 },
+        AUD: { width:1.86, length:3.95, cabinW:1.45, cabinH:0.52, cabinD:1.76, wheel:0.37, ride:0.40, roof:0.02 },
+        BMW: { width:1.84, length:4.02, cabinW:1.42, cabinH:0.49, cabinD:1.70, wheel:0.37, ride:0.43, roof:-0.01 },
+        AMG: { width:1.84, length:3.82, cabinW:1.43, cabinH:0.53, cabinD:1.70, wheel:0.37, ride:0.40, roof:0.03 },
+        M3:  { width:1.90, length:4.12, cabinW:1.44, cabinH:0.49, cabinD:1.70, wheel:0.39, ride:0.42, roof:0.00 },
+        SUP: { width:1.94, length:4.05, cabinW:1.40, cabinH:0.42, cabinD:1.55, wheel:0.39, ride:0.34, roof:-0.08 },
+        LAM: { width:2.00, length:4.08, cabinW:1.42, cabinH:0.39, cabinD:1.42, wheel:0.40, ride:0.30, roof:-0.12 }
+      };
+      const p = profiles[carSpec.id] || profiles.VW1;
+      const w = p.width, len = p.length, wheelR = p.wheel, ride = p.ride;
+      const bodyY = ride + 0.12;
+
+      add(makeRoundedPanel(w,0.48,len,0.18,bodyMat,0.055),0,bodyY,0);
+      box(w*0.94,0.16,len*0.31,0,bodyY+0.28,-len*0.31,bodyMat,0.035);
+      box(w*0.94,0.17,len*0.22,0,bodyY+0.27,len*0.36,bodyMat,0.035);
+      
+      const cabinZ = -0.02 + (p.roof || 0);
+      const cabin = makeCabin(p.cabinW,p.cabinH,p.cabinD,bodyMat,0.035);
+      add(cabin,0,bodyY+0.30,cabinZ);
+      const glass = makeCabin(p.cabinW*0.91,p.cabinH*0.77,p.cabinD*0.91,glassMat,0.012);
+      add(glass,0,bodyY+0.34,cabinZ-0.015);
+
+      [-1,1].forEach(side => {
+        const head = box(w*0.24,0.105,0.045,side*w*0.32,ride+0.31,-len*0.49,lampMat,0.025);
+        head.rotation.z = side * -0.08;
+        box(w*0.25,0.105,0.045,side*w*0.31,ride+0.30,len*0.49,tailMat,0.025);
+      });
+
+      const plateTex = createLicensePlateTexture(StorageManager.data.customPlate);
+      const plateMat = new THREE.MeshBasicMaterial({ map: plateTex });
+      const plateMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.28), plateMat);
+      plateMesh.position.set(0, bodyY + 0.08, len * 0.502);
+      playerCar.add(plateMesh);
+      customPlateMesh = plateMesh;
+
+      const wheelZ = len*0.31;
+      [-1,1].forEach(side => [-1,1].forEach(axle => {
+        const wheel = new THREE.Group();
+        const x = side*(w*0.50+0.015), z = axle*wheelZ;
+        add(wheel,x,wheelR,z);
+        const tyre = new THREE.Mesh(new THREE.CylinderGeometry(wheelR,wheelR,0.24,28,1),rubberMat);
+        tyre.rotation.z = Math.PI/2; wheel.add(tyre);
+        const disc = new THREE.Mesh(new THREE.CylinderGeometry(wheelR*0.70,wheelR*0.70,0.255,24),discMat);
+        disc.rotation.z = Math.PI/2; wheel.add(disc);
+        const rim = new THREE.Mesh(new THREE.CylinderGeometry(wheelR*0.59,wheelR*0.59,0.265,24),rimMat);
+        rim.rotation.z = Math.PI/2; wheel.add(rim);
+        playerWheels.push({group:wheel, front:axle===-1});
+      }));
+
+      const flameGeo = new THREE.ConeGeometry(0.14,0.95,10); flameGeo.rotateX(Math.PI/2);
+      const flameMat = new THREE.MeshBasicMaterial({ color:0x00eaff, transparent:true, opacity:0.92 });
+      flameLeft = new THREE.Mesh(flameGeo,flameMat); flameLeft.position.set(-0.40,ride+0.12,len*0.58); flameLeft.visible=false;
+      flameRight = new THREE.Mesh(flameGeo,flameMat); flameRight.position.set(0.40,ride+0.12,len*0.58); flameRight.visible=false;
+      playerCar.add(flameLeft,flameRight);
+      shieldSphere = new THREE.Mesh(new THREE.SphereGeometry(2.1,20,16),new THREE.MeshBasicMaterial({color:0x00f3ff,transparent:true,opacity:0.24,wireframe:true}));
+      shieldSphere.position.set(0,0.7,0); shieldSphere.visible=false; playerCar.add(shieldSphere);
+
+      const shadow = new THREE.Mesh(new THREE.CircleGeometry(1.25,32),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.30,depthWrite:false}));
+      shadow.rotation.x=-Math.PI/2; shadow.scale.set(w*0.78,len*0.48,1); shadow.position.set(0,0.018,0); playerCar.add(shadow);
+    }
+
+    const trafficCars = [];
+    const coinsList = [];
+    const particles = [];
+    const obstaclesList = [];
+    const powerUpsList = [];
+    const TRAFFIC_COLORS = [0xff2a5f, 0xff9f1c, 0x3a86ff, 0x8338ec, 0xe2e8f0];
+
+    function spawnTrafficVehicle(laneIndex, zPos, type = 'CAR') {
+      const group = new THREE.Group();
+      if (type === 'TAXI') {
+        const length = 4.2, height = 1.28;
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1.66, height, length), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 }));
+        body.position.y = height / 2 + 0.28;
+        group.add(body);
+        const goldBand = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.22, length + 0.04), new THREE.MeshBasicMaterial({ color: 0xffbe0b }));
+        goldBand.position.y = 0.72;
+        const blueBand = new THREE.Mesh(new THREE.BoxGeometry(1.71, 0.12, length + 0.05), new THREE.MeshBasicMaterial({ color: 0x00509d }));
+        blueBand.position.y = 0.55;
+        group.add(goldBand, blueBand);
+        const hazardL = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.16, 0.1), new THREE.MeshBasicMaterial({ color: 0xff9f1c }));
+        hazardL.position.set(-0.62, 0.62, length / 2 + 0.03);
+        const hazardR = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.16, 0.1), new THREE.MeshBasicMaterial({ color: 0xff9f1c }));
+        hazardR.position.set(0.62, 0.62, length / 2 + 0.03);
+        group.add(hazardL, hazardR);
+
+        group.position.set(LANES[laneIndex], 0, zPos);
+        scene.add(group);
+        const possibleTargets = [];
+        if (laneIndex > 0) possibleTargets.push(laneIndex - 1);
+        if (laneIndex < LANES.length - 1) possibleTargets.push(laneIndex + 1);
+        const targetLane = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
+
+        trafficCars.push({ mesh: group, type: 'TAXI', lane: laneIndex, targetLane, currentX: LANES[laneIndex], length, speed: 18 + Math.random() * 7, nearMissed: false, weaveTriggered: false, honked: false, hazardL, hazardR });
+        return;
+      }
+
+      const isTruck = type === 'TRUCK';
+      const color = TRAFFIC_COLORS[Math.floor(Math.random() * TRAFFIC_COLORS.length)];
+      const length = isTruck ? 4.8 : 3.3, height = isTruck ? 1.35 : 0.62;
+      const body = new THREE.Mesh(new THREE.BoxGeometry(1.62, height, length), new THREE.MeshStandardMaterial({ color, roughness: 0.35 }));
+      body.position.y = height / 2 + 0.28;
+      group.add(body);
+      group.position.set(LANES[laneIndex], 0, zPos);
+      scene.add(group);
+      trafficCars.push({ mesh: group, type, lane: laneIndex, currentX: LANES[laneIndex], length, speed: isTruck ? 15 + Math.random() * 6 : 20 + Math.random() * 12, nearMissed: false });
+    }
+
+    function spawnObstacle(laneIndex, zPos) {
+      const group = new THREE.Group();
+      const isPothole = Math.random() < 0.55;
+      if (isPothole) {
+        const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.86, 0.92, 0.05, 14), new THREE.MeshStandardMaterial({ color: 0x262938, roughness: 0.95 }));
+        rim.position.y = 0.025;
+        const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.78, 0.08, 12), new THREE.MeshStandardMaterial({ color: 0x040407, roughness: 1.0 }));
+        hole.position.y = 0.04;
+        group.add(rim, hole);
+        group.position.set(LANES[laneIndex], 0, zPos);
+        scene.add(group);
+        obstaclesList.push({ mesh: group, type: 'POTHOLE', lane: laneIndex, length: 1.2 });
+      } else {
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.82, 1.15), new THREE.MeshStandardMaterial({ color: 0xff6b00, roughness: 0.4 }));
+        mesh.position.y = 0.42;
+        group.add(mesh);
+        group.position.set(LANES[laneIndex], 0, zPos);
+        scene.add(group);
+        obstaclesList.push({ mesh: group, type: 'ROADBLOCK', lane: laneIndex, length: 1.4 });
+      }
+    }
+
+    function spawnPowerUp(laneIndex, zPos) {
+      const types = ['SHIELD', 'MAGNET', 'BOOST'];
+      const pType = types[Math.floor(Math.random() * types.length)];
+      const color = pType === 'SHIELD' ? 0x00f3ff : pType === 'MAGNET' ? 0xff007f : 0x00ff9d;
+      const mesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.65), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.85, metalness: 0.85 }));
+      mesh.position.set(LANES[laneIndex], 1.1, zPos);
+      scene.add(mesh);
+      powerUpsList.push({ mesh, type: pType });
+    }
+
+    const coinGeo = new THREE.CylinderGeometry(0.52, 0.52, 0.16, 16);
+    coinGeo.rotateX(Math.PI / 2);
+    const coinMat = new THREE.MeshStandardMaterial({ color: 0xffd60a, emissive: 0xff9e00, emissiveIntensity: 0.45, metalness: 0.8 });
+
+    function spawnCoinRow(laneIndex, startZ, count = 4) {
+      for (let i = 0; i < count; i++) {
+        const mesh = new THREE.Mesh(coinGeo, coinMat);
+        mesh.position.set(LANES[laneIndex], 0.85, startZ - i * 4.2);
+        scene.add(mesh);
+        coinsList.push({ mesh, collected: false });
+      }
+    }
+
+    const particleGeo = new THREE.BoxGeometry(0.22, 0.22, 0.22);
+    function spawnExplosion(x, y, z, colorHex, count = 24) {
+      for (let i = 0; i < count; i++) {
+        const mesh = new THREE.Mesh(particleGeo, new THREE.MeshBasicMaterial({ color: colorHex }));
+        mesh.position.set(x, y, z);
+        scene.add(mesh);
+        particles.push({ mesh, vx: (Math.random() - 0.5) * 18, vy: Math.random() * 12 + 3, vz: (Math.random() - 0.5) * 18, life: 1.0 });
+      }
+    }
+
+    // ==========================================
+    // 4. GAME STATE & RUN WEATHER TRACKER
+    // ==========================================
+    const GameState = {
+      status: 'MENU',
+      currentLane: 2,
+      playerX: 0,
+      score: 0,
+      distance: 0,
+      runCoins: 0,
+      nearMissCount: 0,
+      combo: 1,
+      comboTimer: 0,
+      nitro: 100,
+      isNitroActive: false,
+      baseSpeed: 46,
+      currentSpeed: 46,
+      spawnTimer: 0,
+      coinSpawnTimer: 0,
+      shakeIntensity: 0,
+      sectorIndex: 0,
+      isStormActive: false,
+      lightningTimer: 0,
+      isBlackout: false,
+      blackoutFactor: 0,
+      nextBlackoutDist: 380,
+      blackoutEndDist: 0,
+      hasShield: false,
+      magnetTimer: 0,
+      runMissionsCompleted: []
+    };
+
+    function getSelectedCarSpec() {
+      const base = CAR_CATALOG.find(c => c.id === StorageManager.data.selectedCar) || CAR_CATALOG[0];
+      const levels = StorageManager.data.upgrades[base.id] || { engine:0, tyres:0, nitro:0 };
+      return { ...base, speedMultiplier:base.speedMultiplier * (1 + levels.engine * 0.035), handling:base.handling * (1 + levels.tyres * 0.045), nitroEfficiency:base.nitroEfficiency * (1 + levels.nitro * 0.10) };
+    }
+    function getCarUpgradeLevels(id) { return StorageManager.data.upgrades[id] || { engine:0, tyres:0, nitro:0 }; }
+    function upgradePrice(level) { return [0,120,220,360][level] || 999999; }
+    function hasCarChallenge(car) { return (StorageManager.data.bestDistance || 0) >= (car.unlockDistance || 0); }
+
+    buildPlayerCar(getSelectedCarSpec());
+
+    function clearEntities() {
+      trafficCars.forEach(t => scene.remove(t.mesh)); trafficCars.length = 0;
+      coinsList.forEach(c => scene.remove(c.mesh)); coinsList.length = 0;
+      obstaclesList.forEach(o => scene.remove(o.mesh)); obstaclesList.length = 0;
+      powerUpsList.forEach(p => scene.remove(p.mesh)); powerUpsList.length = 0;
+      particles.forEach(p => scene.remove(p.mesh)); particles.length = 0;
+    }
+
+    function applySectorTheme(idx, announce = false) {
+      const theme = SECTOR_THEMES[idx % SECTOR_THEMES.length];
+      GameState.activeTheme = theme;
+      
+      GameState.isStormActive = (idx % 2 === 1) || (Math.random() < 0.4);
+      rainSystem.visible = GameState.isStormActive;
+      document.getElementById('weather-badge').classList.toggle('hidden', !GameState.isStormActive);
+
+      if (GameState.isStormActive) {
+        roadMat.roughness = 0.18;
+        roadMat.metalness = 0.65;
+      } else {
+        roadMat.roughness = 0.45;
+        roadMat.metalness = 0.35;
+      }
+
+      if (!GameState.isBlackout) {
+        scene.fog.color.setHex(theme.fog);
+        scene.background.setHex(theme.fog);
+        railMat.color.setHex(theme.primary);
+        archMat.color.setHex(theme.secondary);
+        archSecondaryMat.color.setHex(theme.primary);
+        horizonSun.material.color.setHex(theme.secondary);
+      }
+      document.getElementById('zone-badge').textContent = theme.short;
+      skylines.forEach((sk, i) => { sk.visible = i === (idx % SECTOR_THEMES.length); });
+      if (announce) {
+        triggerFlash('rgba(0, 243, 255, 0.22)');
+        spawnPopup(theme.name, '#00f3ff', '1.05rem');
+        if (GameState.isStormActive) {
+          setTimeout(() => spawnPopup('🌧️ HIGHVELD STORM WARNING!', '#00eaff', '1.1rem'), 800);
+        }
+      }
+    }
+
+    function startBlackout() {
+      GameState.isBlackout = true;
+      GameState.blackoutEndDist = GameState.distance + 400;
+      document.getElementById('blackout-badge').classList.remove('hidden');
+      sound.playBlackoutDown();
+      sound.setBlackoutDucking(true);
+      triggerFlash('rgba(245, 158, 11, 0.32)');
+      spawnPopup('⚡ EISH! LOAD SHEDDING STAGE 4!', '#fbbf24', '1.15rem');
+
+      StorageManager.data.totalBlackouts = (StorageManager.data.totalBlackouts || 0) + 1;
+      StorageManager.save();
+      checkMissionProgress('blackouts', 1);
+    }
+
+    function endBlackout(awardBonus = true) {
+      GameState.isBlackout = false;
+      GameState.nextBlackoutDist = GameState.distance + 650 + Math.random() * 200;
+      document.getElementById('blackout-badge').classList.add('hidden');
+      sound.setBlackoutDucking(false);
+      if (awardBonus) {
+        GameState.score += 250;
+        GameState.nitro = Math.min(100, GameState.nitro + 30);
+        sound.playPowerRestored();
+        triggerFlash('rgba(0, 243, 255, 0.28)');
+        spawnPopup('⚡ ESKOM CAME THROUGH! +250', '#00f3ff', '1.15rem');
+      }
+    }
+
+    function startNewGame() {
+      if (window.donateCountRun) window.donateCountRun();
+      sound.init(); sound.resume(); sound.setEngineActive(true);
+      clearEntities();
+      const carSpec = getSelectedCarSpec();
+      buildPlayerCar(carSpec);
+
+      GameState.status = 'PLAYING';
+      GameState.currentLane = 2; GameState.playerX = 0; GameState.score = 0; GameState.distance = 0;
+      GameState.runCoins = 0; GameState.nearMissCount = 0; GameState.combo = 1; GameState.comboTimer = 0;
+      GameState.nitro = 100; GameState.isNitroActive = false; GameState.baseSpeed = 54; GameState.currentSpeed = 54;
+      GameState.spawnTimer = 0.6; GameState.coinSpawnTimer = 1.2; GameState.shakeIntensity = 0; GameState.sectorIndex = 0;
+      GameState.isStormActive = false; GameState.lightningTimer = 4.0;
+      GameState.isBlackout = false; GameState.blackoutFactor = 0; GameState.nextBlackoutDist = 380; GameState.blackoutEndDist = 0;
+      GameState.hasShield = false; GameState.magnetTimer = 0; GameState.runMissionsCompleted = [];
+
+      StorageManager.data.activeMissions.forEach(m => { m.progress = 0; m.completed = false; });
+      StorageManager.save();
+
+      document.getElementById('blackout-badge').classList.add('hidden');
+      document.getElementById('shield-badge').classList.add('hidden');
+      document.getElementById('magnet-badge').classList.add('hidden');
+
+      playerCar.visible = true; playerCar.position.set(0, 0, 0); playerCar.rotation.set(0, 0, 0);
+      applySectorTheme(0, false);
+      updateHUD();
+      showScreen('PLAYING');
+    }
+
+    function checkMissionProgress(type, amount) {
+      if (GameState.status !== 'PLAYING') return;
+      StorageManager.data.activeMissions.forEach(m => {
+        if (!m.completed && m.type === type) {
+          m.progress += amount;
+          if (m.progress >= m.target) {
+            m.completed = true;
+            GameState.runCoins += m.reward;
+            GameState.runMissionsCompleted.push(m);
+            sound.playCoin();
+            spawnPopup(`🎯 MISSION COMPLETE: +R${m.reward}`, '#00ff9d', '1.15rem');
+            showToast(`Mission Completed: ${m.desc}`);
+          }
+        }
+      });
+      StorageManager.save();
+    }
+
+    function triggerCrash() {
+      GameState.status = 'GAMEOVER';
+      GameState.isNitroActive = false;
+      GameState.shakeIntensity = 0.75;
+      rainSystem.visible = false;
+      document.getElementById('speed-lines').classList.remove('active');
+      sound.setEngineActive(false);
+      sound.playCrash();
+
+      const carSpec = getSelectedCarSpec();
+      spawnExplosion(playerCar.position.x, 0.8, 0, carSpec.bodyColor, 34);
+      playerCar.visible = false;
+      triggerFlash('rgba(255, 0, 85, 0.45)');
+
+      const finalScore = Math.floor(GameState.score);
+      const isNewRecord = finalScore > StorageManager.data.highScore;
+      if (isNewRecord) StorageManager.data.highScore = finalScore;
+
+      StorageManager.data.coins += GameState.runCoins;
+      StorageManager.data.bestDistance = Math.max(StorageManager.data.bestDistance || 0, Math.floor(GameState.distance));
+      StorageManager.data.totalDistance = (StorageManager.data.totalDistance || 0) + Math.floor(GameState.distance);
+      StorageManager.data.totalNearMisses = (StorageManager.data.totalNearMisses || 0) + GameState.nearMissCount;
+
+      checkLifetimeGoals();
+      StorageManager.save();
+      if (window.GeetechLB) window.GeetechLB.onGameOver(finalScore, Math.floor(GameState.distance));
+
+      document.getElementById('over-score').textContent = finalScore.toLocaleString();
+      document.getElementById('over-best').textContent = StorageManager.data.highScore.toLocaleString();
+      document.getElementById('over-distance').textContent = `${Math.floor(GameState.distance)}m`;
+      document.getElementById('over-nearmiss').textContent = GameState.nearMissCount;
+      document.getElementById('over-coins').textContent = GameState.runCoins;
+      document.getElementById('new-record-badge').classList.toggle('hidden', !isNewRecord);
+
+      const missionSummaryBox = document.getElementById('over-missions-summary');
+      const missionListEl = document.getElementById('over-missions-list');
+      if (GameState.runMissionsCompleted.length > 0) {
+        missionListEl.innerHTML = GameState.runMissionsCompleted.map(m => `<div>✓ ${m.desc} (<span class="text-amber-300 font-bold">+R${m.reward}</span>)</div>`).join('');
+        missionSummaryBox.classList.remove('hidden');
+      } else {
+        missionSummaryBox.classList.add('hidden');
+      }
+
+      setTimeout(() => {
+        if (GameState.status === 'GAMEOVER') {
+          showScreen('GAMEOVER');
+          updateMenuStats();
+        }
+      }, 650);
+    }
+
+    function checkLifetimeGoals() {
+      StorageManager.data.carsOwnedCount = StorageManager.data.unlockedCars.length;
+      let maxedCount = 0;
+      CAR_CATALOG.forEach(car => {
+        const lv = getCarUpgradeLevels(car.id);
+        if ((lv.engine || 0) >= 3 && (lv.tyres || 0) >= 3 && (lv.nitro || 0) >= 3) {
+          maxedCount++;
+        }
+      });
+      StorageManager.data.maxedCarCount = maxedCount;
+
+      LIFETIME_GOALS.forEach(goal => {
+        if (!StorageManager.data.claimedGoals.includes(goal.id)) {
+          const val = StorageManager.data[goal.key] || 0;
+          if (val >= goal.target) {
+            StorageManager.data.claimedGoals.push(goal.id);
+            StorageManager.data.coins += goal.reward;
+            showToast(`🏆 GOAL UNLOCKED: ${goal.title} (+R${goal.reward})!`);
+          }
+        }
+      });
+    }
+
+    function triggerFlash(rgbaColor) {
+      const flash = document.getElementById('screen-flash');
+      flash.style.background = rgbaColor;
+      flash.style.opacity = '1';
+      setTimeout(() => { flash.style.opacity = '0'; }, 130);
+    }
+
+    function spawnPopup(text, color = '#00f3ff', fontSize = '1.15rem') {
+      const layer = document.getElementById('popups-layer');
+      const el = document.createElement('div');
+      el.className = 'floating-callout';
+      el.style.color = color;
+      el.style.fontSize = fontSize;
+      el.textContent = text;
+      layer.appendChild(el);
+      setTimeout(() => el.remove(), 950);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-msg');
+      toast.textContent = msg;
+      toast.classList.remove('hidden');
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => toast.classList.add('hidden'), 2400);
+    }
+
+    function updateHUD() {
+      document.getElementById('hud-score').textContent = Math.floor(GameState.score).toLocaleString();
+      document.getElementById('hud-distance').textContent = Math.floor(GameState.distance).toLocaleString();
+      document.getElementById('hud-combo').textContent = `x${GameState.combo}`;
+      document.getElementById('hud-coins').textContent = (StorageManager.data.coins + GameState.runCoins).toLocaleString();
+      document.getElementById('hud-speed').textContent = Math.floor(GameState.currentSpeed * 3.15);
+      document.getElementById('nitro-pct').textContent = `${Math.round(GameState.nitro)}%`;
+      document.getElementById('nitro-bar').style.width = `${GameState.nitro}%`;
+      document.getElementById('shield-badge').classList.toggle('hidden', !GameState.hasShield);
+      document.getElementById('magnet-badge').classList.toggle('hidden', GameState.magnetTimer <= 0);
+
+      const nitroBtn = document.getElementById('btn-nitro');
+      if (GameState.nitro >= 30 && !GameState.isNitroActive) nitroBtn.classList.add('nitro-ready');
+      else nitroBtn.classList.remove('nitro-ready');
+    }
+
+    function updateRadioUI() {
+      const label = document.getElementById('radio-station-label');
+      const skipBtn = document.getElementById('btn-next-track');
+      if (!label) return;
+      const st = sound.getCurrentStation();
+      label.textContent = st.label;
+      if (st.id === 0) {
+        label.className = 'font-display text-[9px] font-black tracking-wider text-slate-400';
+        if (skipBtn) skipBtn.classList.add('hidden');
+      } else if (st.id === 1) {
+        label.className = 'font-display text-[9px] font-black tracking-wider text-pink-300';
+        if (skipBtn) skipBtn.classList.remove('hidden');
+      } else {
+        label.className = 'font-display text-[9px] font-black tracking-wider text-amber-300';
+        if (skipBtn) skipBtn.classList.remove('hidden');
+      }
+    }
+
+    function updateMenuStats() {
+      document.getElementById('menu-high-score').textContent = StorageManager.data.highScore.toLocaleString();
+      document.getElementById('hud-coins').textContent = StorageManager.data.coins.toLocaleString();
+      document.getElementById('garage-coins').textContent = StorageManager.data.coins.toLocaleString();
+      document.getElementById('custom-plate-input').value = StorageManager.data.customPlate || 'GEETECH GP';
+      updateRadioUI();
+
+      const car = getSelectedCarSpec();
+      document.getElementById('selected-car-name').textContent = car.name;
+      document.getElementById('selected-car-swatch').style.background = car.hex;
+
+      const activeMissionsCount = StorageManager.data.activeMissions.filter(m => !m.completed).length;
+      document.getElementById('menu-missions-status').textContent = `${activeMissionsCount} Active Tasks`;
+      document.getElementById('menu-daily-status').textContent = StorageManager.data.claimedDailyToday ? 'Claimed Today ✓' : 'Claim R100+ Now';
+    }
+
+    function showScreen(screenName) {
+      const screens = ['screen-start', 'screen-garage', 'screen-pause', 'screen-gameover', 'screen-missions', 'screen-daily', 'screen-leaderboard', 'screen-donate'];
+      screens.forEach(id => document.getElementById(id).classList.add('hidden'));
+
+      const isPlaying = screenName === 'PLAYING';
+      document.getElementById('gameplay-stats').classList.toggle('hidden', !isPlaying);
+      document.getElementById('gameplay-stats').classList.toggle('flex', isPlaying);
+      document.getElementById('gameplay-controls').classList.toggle('hidden', !isPlaying);
+      document.getElementById('btn-pause').classList.toggle('hidden', !isPlaying);
+      document.getElementById('menu-best-badge').classList.toggle('hidden', isPlaying);
+
+      if (screenName === 'MENU') document.getElementById('screen-start').classList.remove('hidden');
+      if (screenName === 'GARAGE') document.getElementById('screen-garage').classList.remove('hidden');
+      if (screenName === 'MISSIONS') { renderMissionsScreen('run'); document.getElementById('screen-missions').classList.remove('hidden'); }
+      if (screenName === 'DAILY') { updateDailyScreen(); document.getElementById('screen-daily').classList.remove('hidden'); }
+      if (screenName === 'LEADERBOARD') { document.getElementById('screen-leaderboard').classList.remove('hidden'); if (window.GeetechLB) window.GeetechLB.refresh(); }
+      if (screenName === 'DONATE') document.getElementById('screen-donate').classList.remove('hidden');
+      if (screenName === 'PAUSED') document.getElementById('screen-pause').classList.remove('hidden');
+      if (screenName === 'GAMEOVER') { document.getElementById('screen-gameover').classList.remove('hidden'); if (window.donateRefresh) window.donateRefresh(); }
+    }
+
+    let currentMissionTab = 'run';
+    function renderMissionsScreen(tab) {
+      currentMissionTab = tab;
+      const container = document.getElementById('missions-container');
+      container.innerHTML = '';
+      container.scrollTop = 0;
+
+      const tabRun = document.getElementById('tab-run-missions');
+      const tabLife = document.getElementById('tab-lifetime-goals');
+      tabRun.className = `flex-1 pb-2 font-display text-xs font-bold ${tab==='run'?'text-cyan-300 border-b-2 border-cyan-400':'text-slate-400'}`;
+      tabLife.className = `flex-1 pb-2 font-display text-xs font-bold ${tab==='lifetime'?'text-cyan-300 border-b-2 border-cyan-400':'text-slate-400'}`;
+
+      if (tab === 'run') {
+        const rerollDiv = document.createElement('div');
+        rerollDiv.className = 'hud-pill rounded-xl p-3 flex items-center justify-between mb-1 shrink-0';
+        rerollDiv.innerHTML = `
+          <div>
+            <div class="text-xs font-bold text-white">Daily Reroll</div>
+            <div class="text-[10px] text-slate-400">Skip a bad mission for free once a day</div>
+          </div>
+          <button id="btn-reroll-mission" class="px-3 py-1.5 rounded-lg bg-cyan-400 text-slate-950 font-display text-xs font-black active:scale-95 transition" ${StorageManager.data.rerollUsedToday?'disabled':''}>
+            ${StorageManager.data.rerollUsedToday ? 'USED TODAY' : 'FREE REROLL'}
+          </button>
+        `;
+        container.appendChild(rerollDiv);
+
+        StorageManager.data.activeMissions.forEach((m) => {
+          const card = document.createElement('div');
+          card.className = 'hud-pill rounded-2xl p-3.5 border border-white/10 flex flex-col gap-2 shrink-0';
+          const pct = Math.min(100, (m.progress / m.target) * 100);
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-display text-[10px] font-bold uppercase">${m.tier} Tier</span>
+              <span class="font-display text-xs font-black text-amber-300">+R${m.reward}</span>
+            </div>
+            <div class="text-xs font-semibold text-white">${m.desc}</div>
+            <div class="flex items-center gap-2">
+              <div class="flex-1 h-2 bg-slate-900 rounded-full overflow-hidden">
+                <div class="h-full bg-cyan-400 transition-all" style="width:${pct}%"></div>
+              </div>
+              <span class="text-[10px] font-mono text-slate-400">${m.progress}/${m.target}</span>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+
+        document.getElementById('btn-reroll-mission')?.addEventListener('click', () => {
+          if (!StorageManager.data.rerollUsedToday) {
+            StorageManager.data.rerollUsedToday = true;
+            StorageManager.data.activeMissions = [];
+            StorageManager.generateNewMissions();
+            renderMissionsScreen('run');
+            showToast('Missions rerolled successfully!');
+          }
+        });
+
+      } else {
+        LIFETIME_GOALS.forEach(goal => {
+          const claimed = StorageManager.data.claimedGoals.includes(goal.id);
+          const currentVal = StorageManager.data[goal.key] || 0;
+          const pct = Math.min(100, (currentVal / goal.target) * 100);
+
+          const card = document.createElement('div');
+          card.className = `hud-pill rounded-2xl p-3.5 border shrink-0 ${claimed ? 'border-emerald-500/40 bg-emerald-950/20' : 'border-white/10'}`;
+          card.innerHTML = `
+            <div class="flex items-center justify-between mb-1">
+              <div class="font-display text-xs font-bold text-white">${goal.title}</div>
+              <span class="font-display text-xs font-black text-amber-300">+R${goal.reward}</span>
+            </div>
+            <p class="text-[10px] text-slate-300 mb-2">${goal.desc}</p>
+            <div class="flex items-center gap-2">
+              <div class="flex-1 h-2 bg-slate-900 rounded-full overflow-hidden">
+                <div class="h-full ${claimed ? 'bg-emerald-400' : 'bg-amber-400'} transition-all" style="width:${pct}%"></div>
+              </div>
+              <span class="text-[10px] font-mono text-slate-400">${Math.min(currentVal, goal.target)}/${goal.target}</span>
+            </div>
+            ${claimed ? '<div class="text-[9px] text-emerald-400 font-bold mt-1.5 text-right">✓ CLAIMED</div>' : ''}
+          `;
+          container.appendChild(card);
+        });
+      }
+    }
+
+    function updateDailyScreen() {
+      const streak = StorageManager.data.dailyStreak || 0;
+      const payout = Math.min(200, 100 + streak * 20);
+      document.getElementById('daily-streak-count').textContent = `Day ${streak + 1}`;
+      document.getElementById('daily-payout-amount').textContent = `R${payout}`;
+      const claimBtn = document.getElementById('btn-claim-daily');
+      if (StorageManager.data.claimedDailyToday) {
+        claimBtn.textContent = 'ALREADY CLAIMED TODAY';
+        claimBtn.disabled = true;
+        claimBtn.classList.add('opacity-50');
+      } else {
+        claimBtn.textContent = `CLAIM R${payout}`;
+        claimBtn.disabled = false;
+        claimBtn.classList.remove('opacity-50');
+      }
+    }
+
+    function steerLeft() {
+      if (GameState.status !== 'PLAYING') return;
+      if (GameState.currentLane > 0) { GameState.currentLane--; sound.playSteer(); }
+    }
+    function steerRight() {
+      if (GameState.status !== 'PLAYING') return;
+      if (GameState.currentLane < LANES.length - 1) { GameState.currentLane++; sound.playSteer(); }
+    }
+    function setNitro(active) {
+      if (GameState.status !== 'PLAYING') { GameState.isNitroActive = false; document.getElementById('speed-lines').classList.remove('active'); return; }
+      if (active && GameState.nitro > 12) { GameState.isNitroActive = true; document.getElementById('speed-lines').classList.add('active'); }
+      else { GameState.isNitroActive = false; document.getElementById('speed-lines').classList.remove('active'); }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.repeat) return;
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') steerLeft();
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') steerRight();
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === ' ') setNitro(true);
+      if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+        if (GameState.status === 'PLAYING') pauseGame();
+        else if (GameState.status === 'PAUSED') resumeGame();
+      }
+    });
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === ' ') setNitro(false);
+    });
+
+    let touchStartX = 0, touchStartY = 0, touchMoved = false, lastStepX = 0;
+    canvas.addEventListener('touchstart', (e) => {
+      if (GameState.status !== 'PLAYING') return;
+      const t = e.touches[0]; touchStartX = t.clientX; touchStartY = t.clientY; lastStepX = t.clientX; touchMoved = false;
+    }, { passive: true });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (GameState.status !== 'PLAYING') return;
+      const t = e.touches[0], dx = t.clientX - lastStepX, dy = t.clientY - touchStartY;
+      if (dy < -48 && Math.abs(dy) > Math.abs(t.clientX - touchStartX)) { setNitro(true); touchMoved = true; }
+      if (dx > 44) { steerRight(); lastStepX = t.clientX; touchMoved = true; }
+      else if (dx < -44) { steerLeft(); lastStepX = t.clientX; touchMoved = true; }
+    }, { passive: true });
+
+    canvas.addEventListener('touchend', () => {
+      if (GameState.status !== 'PLAYING') return;
+      setNitro(false);
+      if (!touchMoved) {
+        const rect = shell.getBoundingClientRect();
+        if ((touchStartX - rect.left) < rect.width * 0.5) steerLeft(); else steerRight();
+      }
+    });
+
+    canvas.addEventListener('mousedown', (e) => {
+      if (GameState.status !== 'PLAYING') return;
+      const rect = shell.getBoundingClientRect();
+      if ((e.clientX - rect.left) < rect.width * 0.5) steerLeft(); else steerRight();
+    });
+
+    const btnNitro = document.getElementById('btn-nitro');
+    ['touchstart', 'mousedown'].forEach(ev => btnNitro.addEventListener(ev, (e) => { e.stopPropagation(); setNitro(true); }, {passive:true}));
+    ['touchend', 'mouseup', 'mouseleave'].forEach(ev => btnNitro.addEventListener(ev, () => setNitro(false)));
+
+    document.getElementById('btn-save-plate').addEventListener('click', () => {
+      const val = document.getElementById('custom-plate-input').value.trim().toUpperCase();
+      if (val.length > 0) {
+        StorageManager.data.customPlate = val;
+        StorageManager.save();
+        buildPlayerCar(getSelectedCarSpec());
+        showToast(`License Plate Set to: ${val}`);
+        sound.playCoin();
+      }
+    });
+
+    function renderGarage() {
+      const list = document.getElementById('garage-list');
+      list.innerHTML = '';
+      document.getElementById('garage-coins').textContent = StorageManager.data.coins.toLocaleString();
+      document.getElementById('custom-plate-input').value = StorageManager.data.customPlate || 'GEETECH GP';
+
+      const progress = StorageManager.data.bestDistance || 0;
+      CAR_CATALOG.forEach((car) => {
+        const isUnlocked = StorageManager.data.unlockedCars.includes(car.id);
+        const isSelected = StorageManager.data.selectedCar === car.id;
+        const levels = getCarUpgradeLevels(car.id);
+        const challengeMet = hasCarChallenge(car);
+        const card = document.createElement('div');
+        card.className = `hud-pill rounded-2xl p-3.5 border shrink-0 ${isSelected ? 'border-cyan-400 bg-cyan-950/30' : 'border-white/10'}`;
+        const upgradeRows = [['engine','ENGINE','Top speed'],['tyres','TYRES','Handling'],['nitro','NITRO','Boost']].map(([key,label,benefit]) => {
+          const level = levels[key] || 0;
+          return `<div class="flex items-center justify-between gap-2 py-1.5 border-t border-white/10"><div><div class="text-[10px] font-display font-bold text-white">${label} <span class="text-cyan-300">LV ${level}/3</span></div><div class="text-[9px] text-slate-400">${benefit}</div></div>${level < 3 ? `<button data-upgrade="${car.id}" data-type="${key}" class="rounded-lg px-2.5 py-1.5 text-[9px] font-black ${isUnlocked ? 'bg-cyan-400 text-slate-950' : 'bg-white/10 text-slate-500'}" ${isUnlocked ? '' : 'disabled'}>UPGRADE · R${upgradePrice(level)}</button>` : `<span class="text-[9px] text-emerald-300 font-bold">MAXED</span>`}</div>`;
+        }).join('');
+
+        let action = '';
+        if (isSelected) action = `<span class="px-3 py-2 rounded-xl bg-cyan-400/20 border border-cyan-400 text-cyan-300 font-display text-[10px] font-bold">EQUIPPED</span>`;
+        else if (isUnlocked) action = `<button data-select="${car.id}" class="px-3 py-2 rounded-xl bg-white/15 text-white font-display text-[10px] font-bold">SELECT</button>`;
+        else if (!challengeMet) action = `<span class="text-[9px] text-amber-300 font-bold text-right">BEST ${progress}m / ${car.unlockDistance}m</span>`;
+        else action = `<button data-buy="${car.id}" class="px-3 py-2 rounded-xl bg-amber-400 text-slate-950 font-display text-[10px] font-black">UNLOCK · R${car.price}</button>`;
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center font-display font-black text-slate-950 text-xs shadow-md shrink-0 border border-white/20" style="background:linear-gradient(145deg,${car.hex},#101827)">GT</div>
+              <div class="min-w-0"><div class="font-display text-xs font-bold text-white">${car.name}</div><span class="text-[9px] font-display font-bold text-cyan-300">${car.tag}</span><p class="text-[10px] text-slate-300 mt-0.5">${car.desc}</p></div>
+            </div><div class="shrink-0">${action}</div>
+          </div>
+          ${!isUnlocked && car.unlockDistance > 0 ? `<div class="h-1.5 bg-white/10 rounded-full overflow-hidden mb-2"><div class="h-full bg-amber-400" style="width:${Math.min(100,progress/car.unlockDistance*100)}%"></div></div>` : ''}
+          ${isUnlocked ? `<div class="mt-2"><div class="text-[9px] text-slate-400 font-bold tracking-wider mb-1">PERFORMANCE UPGRADES</div>${upgradeRows}</div>` : ''}
+        `;
+        list.appendChild(card);
+      });
+
+      list.querySelectorAll('[data-select]').forEach(btn => btn.addEventListener('click', () => {
+        StorageManager.data.selectedCar = btn.dataset.select; StorageManager.save(); buildPlayerCar(getSelectedCarSpec()); renderGarage(); updateMenuStats(); sound.playCoin();
+      }));
+      list.querySelectorAll('[data-buy]').forEach(btn => btn.addEventListener('click', () => {
+        const car = CAR_CATALOG.find(c => c.id === btn.dataset.buy);
+        if (!hasCarChallenge(car)){ showToast(`DRIVE ${car.unlockDistance}m TO UNLOCK`); return; }
+        if (StorageManager.data.coins >= car.price) {
+          StorageManager.data.coins -= car.price; StorageManager.data.unlockedCars.push(car.id); StorageManager.data.selectedCar = car.id;
+          checkLifetimeGoals(); StorageManager.save(); buildPlayerCar(getSelectedCarSpec()); renderGarage(); updateMenuStats(); sound.playCoin(); showToast(`UNLOCKED ${car.name}!`);
+        } else showToast(`NEED ${car.price - StorageManager.data.coins} MORE RANDS`);
+      }));
+      list.querySelectorAll('[data-upgrade]').forEach(btn => btn.addEventListener('click', () => {
+        const carId = btn.dataset.upgrade, type = btn.dataset.type;
+        const levels = getCarUpgradeLevels(carId), level = levels[type] || 0, cost = upgradePrice(level);
+        if (level >= 3) return;
+        if (StorageManager.data.coins < cost) { showToast(`NEED ${cost - StorageManager.data.coins} MORE RANDS`); return; }
+        StorageManager.data.coins -= cost; StorageManager.data.upgrades[carId] = { ...levels, [type]: level + 1 };
+        checkLifetimeGoals(); StorageManager.save();
+        if (StorageManager.data.selectedCar === carId) buildPlayerCar(getSelectedCarSpec());
+        renderGarage(); updateMenuStats(); sound.playCoin(); showToast(`${type.toUpperCase()} UPGRADED TO LV ${level + 1}`);
+      }));
+    }
+
+    function pauseGame() {
+      if (GameState.status !== 'PLAYING') return;
+      GameState.status = 'PAUSED'; setNitro(false); sound.setEngineActive(false); showScreen('PAUSED');
+    }
+    function resumeGame() {
+      if (GameState.status !== 'PAUSED') return;
+      GameState.status = 'PLAYING'; sound.setEngineActive(true); showScreen('PLAYING');
+    }
+
+    document.getElementById('btn-play').addEventListener('click', startNewGame);
+    document.getElementById('btn-restart').addEventListener('click', startNewGame);
+    document.getElementById('btn-pause').addEventListener('click', pauseGame);
+    document.getElementById('btn-resume').addEventListener('click', resumeGame);
+
+    document.getElementById('btn-open-missions').addEventListener('click', () => showScreen('MISSIONS'));
+    document.getElementById('btn-close-missions').addEventListener('click', () => showScreen('MENU'));
+    document.getElementById('btn-missions-back').addEventListener('click', () => showScreen('MENU'));
+    document.getElementById('tab-run-missions').addEventListener('click', () => renderMissionsScreen('run'));
+    document.getElementById('tab-lifetime-goals').addEventListener('click', () => renderMissionsScreen('lifetime'));
+
+    document.getElementById('btn-open-daily').addEventListener('click', () => showScreen('DAILY'));
+    document.getElementById('btn-close-daily').addEventListener('click', () => showScreen('MENU'));
+    document.getElementById('btn-claim-daily').addEventListener('click', () => {
+      if (!StorageManager.data.claimedDailyToday) {
+        const streak = StorageManager.data.dailyStreak || 0;
+        const payout = Math.min(200, 100 + streak * 20);
+        StorageManager.data.coins += payout;
+        StorageManager.data.dailyStreak = streak + 1;
+        StorageManager.data.claimedDailyToday = true;
+        StorageManager.save();
+        updateDailyScreen();
+        updateMenuStats();
+        sound.playCoin();
+        showToast(`Claimed R${payout} Daily Bonus!`);
+      }
+    });
+
+    document.getElementById('btn-quit-menu').addEventListener('click', () => { GameState.status = 'MENU'; sound.setEngineActive(false); clearEntities(); updateMenuStats(); showScreen('MENU'); });
+    document.getElementById('btn-over-home').addEventListener('click', () => { GameState.status = 'MENU'; clearEntities(); updateMenuStats(); showScreen('MENU'); });
+    document.getElementById('btn-open-garage').addEventListener('click', () => { renderGarage(); showScreen('GARAGE'); });
+    document.getElementById('btn-over-garage').addEventListener('click', () => { renderGarage(); showScreen('GARAGE'); });
+    document.getElementById('btn-close-garage').addEventListener('click', () => showScreen('MENU'));
+    document.getElementById('btn-garage-done').addEventListener('click', () => showScreen('MENU'));
+
+    document.getElementById('btn-radio').addEventListener('click', () => {
+      const track = sound.cycleRadio();
+      updateRadioUI();
+      if (!track) showToast('📻 RADIO TURNED OFF');
+      else showToast(`📻 ${sound.getCurrentStation().label}: ${track.title}`);
+    });
+
+    document.getElementById('btn-next-track').addEventListener('click', () => {
+      const track = sound.nextTrack();
+      updateRadioUI();
+      if (track) showToast(`⏭ ${sound.getCurrentStation().label}: ${track.title}`);
+    });
+
+    document.getElementById('btn-mute').addEventListener('click', () => {
+      sound.init(); sound.setMuted(!sound.muted);
+      document.getElementById('icon-sound-on').classList.toggle('hidden', sound.muted);
+      document.getElementById('icon-sound-off').classList.toggle('hidden', !sound.muted);
+    });
+
+    let lastTime = performance.now();
+
+    function animate(now) {
+      requestAnimationFrame(animate);
+      const dt = Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
+      const carSpec = getSelectedCarSpec();
+
+      if (GameState.status === 'MENU') {
+        laneLines.forEach(dash => { dash.position.z += 24 * dt; if (dash.position.z > 18) dash.position.z -= 225; });
+        tunnelArches.forEach(arch => { arch.position.z += 24 * dt; if (arch.position.z > 16) arch.position.z -= 252; });
+        playerCar.position.y = Math.sin(now * 0.004) * 0.04;
+        camera.position.x = Math.sin(now * 0.0008) * 1.4; camera.position.y = 4.2; camera.lookAt(0, 1.1, -14);
+      }
+
+      if (GameState.status === 'PLAYING') {
+        GameState.baseSpeed = Math.min(92 * carSpec.speedMultiplier, (48 + GameState.distance * 0.011) * carSpec.speedMultiplier);
+
+        if (GameState.isNitroActive && GameState.nitro > 0) {
+          GameState.nitro = Math.max(0, GameState.nitro - (34 / carSpec.nitroEfficiency) * dt);
+          if (GameState.nitro <= 0) setNitro(false);
+        } else {
+          GameState.nitro = Math.min(100, GameState.nitro + 5.5 * dt);
+        }
+
+        const targetSpeed = GameState.isNitroActive ? GameState.baseSpeed * 1.48 : GameState.baseSpeed;
+        GameState.currentSpeed += (targetSpeed - GameState.currentSpeed) * Math.min(1, dt * 8);
+
+        if (flameLeft && flameRight) {
+          flameLeft.visible = GameState.isNitroActive; flameRight.visible = GameState.isNitroActive;
+          if (GameState.isNitroActive) {
+            const flicker = 0.85 + Math.random() * 0.55;
+            flameLeft.scale.set(1, flicker, 1); flameRight.scale.set(1, flicker, 1);
+          }
+        }
+
+        if (shieldSphere) { shieldSphere.visible = GameState.hasShield; if (GameState.hasShield) shieldSphere.rotation.y += 2.2 * dt; }
+        if (GameState.magnetTimer > 0) GameState.magnetTimer = Math.max(0, GameState.magnetTimer - dt);
+
+        sound.updateEnginePitch((GameState.currentSpeed - 45) / 60, GameState.isNitroActive);
+
+        if (GameState.isStormActive) {
+          const positions = rainSystem.geometry.attributes.position.array;
+          for (let i = 1; i < positions.length; i += 3) {
+            positions[i] -= (GameState.currentSpeed + 35) * dt;
+            positions[i - 2] += GameState.currentSpeed * 0.4 * dt;
+            if (positions[i] < 0) positions[i] = 28;
+            if (positions[i - 2] > 50) positions[i - 2] = -150;
+          }
+          rainSystem.geometry.attributes.position.needsUpdate = true;
+
+          GameState.lightningTimer -= dt;
+          if (GameState.lightningTimer <= 0) {
+            GameState.lightningTimer = 6.0 + Math.random() * 8.0;
+            triggerFlash('rgba(255, 255, 255, 0.75)');
+            sound.playThunder();
+            spawnPopup('⚡ THUNDERSTORM LIGHTNING!', '#00f3ff', '1.1rem');
+          }
+        }
+
+        const stepDist = GameState.currentSpeed * dt;
+        GameState.distance += stepDist * 0.45;
+        GameState.score += stepDist * 0.85 * GameState.combo * (GameState.isNitroActive ? 1.5 : 1);
+
+        checkMissionProgress('distance', Math.floor(stepDist * 0.45));
+
+        const newSector = Math.floor(GameState.distance / 1000);
+        if (newSector > GameState.sectorIndex) {
+          GameState.sectorIndex = newSector; applySectorTheme(newSector, true);
+        }
+
+        if (!GameState.isBlackout && GameState.distance >= GameState.nextBlackoutDist) startBlackout();
+        else if (GameState.isBlackout && GameState.distance >= GameState.blackoutEndDist) endBlackout(true);
+
+        const targetBlackout = GameState.isBlackout ? 1.0 : 0.0;
+        GameState.blackoutFactor += (targetBlackout - GameState.blackoutFactor) * Math.min(1, dt * 3.5);
+        const bf = GameState.blackoutFactor, theme = GameState.activeTheme || SECTOR_THEMES[0];
+
+        ambientLight.intensity = 0.65 * (1 - bf * 0.92);
+        dirLight.intensity = 0.9 * (1 - bf * 0.95);
+        scene.fog.density = 0.0115 + bf * 0.014;
+        scene.background.copy(new THREE.Color(theme.fog)).lerp(new THREE.Color(0x010104), bf);
+        scene.fog.color.copy(scene.background);
+
+        headLightLeft.intensity = bf * 4.5; headLightRight.intensity = bf * 4.5; beamConeMat.opacity = bf * 0.16;
+        headLightLeft.position.set(GameState.playerX - 0.55, 0.72, -1.6);
+        headLightRight.position.set(GameState.playerX + 0.55, 0.72, -1.6);
+        headLightTargetL.position.set(GameState.playerX - 1.1, 0.1, -28);
+        headLightTargetR.position.set(GameState.playerX + 1.1, 0.1, -28);
+        leftBeamCone.position.set(GameState.playerX - 0.55, 0.58, -1.7);
+        rightBeamCone.position.set(GameState.playerX + 0.55, 0.58, -1.7);
+
+        if (GameState.combo > 1) {
+          GameState.comboTimer -= dt;
+          if (GameState.comboTimer <= 0) GameState.combo = 1;
+        }
+
+        const targetX = LANES[GameState.currentLane], diffX = targetX - GameState.playerX;
+        GameState.playerX += diffX * Math.min(1, dt * 13 * carSpec.handling);
+        playerCar.position.x = GameState.playerX; playerUnderglow.position.x = GameState.playerX;
+        playerCar.rotation.z = -diffX * 0.14; playerCar.rotation.y = -diffX * 0.08;
+
+        playerWheels.forEach(({group, front}) => {
+          group.rotation.x -= GameState.currentSpeed * dt * 1.9;
+          group.rotation.y = front ? -diffX * 0.035 : 0;
+        });
+
+        const targetFov = (camera.aspect < 0.62 ? 68 : 60) + (GameState.isNitroActive ? 11 : 0);
+        camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 7); camera.updateProjectionMatrix();
+
+        if (GameState.isNitroActive) GameState.shakeIntensity = Math.max(GameState.shakeIntensity, 0.07);
+        const shakeX = (Math.random() - 0.5) * GameState.shakeIntensity, shakeY = (Math.random() - 0.5) * GameState.shakeIntensity;
+        GameState.shakeIntensity = Math.max(0, GameState.shakeIntensity - dt * 2.4);
+
+        camera.position.x = GameState.playerX * 0.52 + shakeX; camera.position.y = 4.35 + shakeY;
+        camera.lookAt(GameState.playerX * 0.28, 1.2, -18);
+
+        laneLines.forEach(dash => { dash.position.z += GameState.currentSpeed * dt; if (dash.position.z > 18) dash.position.z -= 225; });
+        tunnelArches.forEach(arch => { arch.position.z += GameState.currentSpeed * dt; if (arch.position.z > 16) arch.position.z -= 252; });
+
+        GameState.spawnTimer -= dt;
+        if (GameState.spawnTimer <= 0) {
+          const dist = GameState.distance, stage = dist < 400 ? 1 : dist < 1000 ? 2 : dist < 2000 ? 3 : 4;
+          GameState.spawnTimer = Math.max(0.58, [0, 1.22, 1.02, 0.82, 0.66][stage]);
+
+          const laneIndices = [0, 1, 2, 3, 4];
+          for (let j = laneIndices.length - 1; j > 0; j--) {
+            const k = Math.floor(Math.random() * (j + 1));
+            [laneIndices[j], laneIndices[k]] = [laneIndices[k], laneIndices[j]];
+          }
+
+          let carsToSpawn = dist > 350 && Math.random() < 0.45 ? 2 : 1;
+          for (let i = 0; i < carsToSpawn; i++) {
+            spawnTrafficVehicle(laneIndices[i], -165 - i * 11, Math.random() < 0.38 ? 'TAXI' : 'CAR');
+          }
+          if (dist > 160 && Math.random() < 0.35) spawnObstacle(laneIndices[carsToSpawn], -165 - carsToSpawn * 11 - 8);
+          if (dist > 90 && Math.random() < 0.16) spawnPowerUp(laneIndices[Math.min(carsToSpawn + 1, 4)], -165 - 6);
+        }
+
+        GameState.coinSpawnTimer -= dt;
+        if (GameState.coinSpawnTimer <= 0) {
+          GameState.coinSpawnTimer = 2.6 + Math.random() * 1.4;
+          spawnCoinRow(Math.floor(Math.random() * LANES.length), -165, 4);
+        }
+
+        for (let i = trafficCars.length - 1; i >= 0; i--) {
+          const t = trafficCars[i];
+          t.mesh.position.z += (GameState.currentSpeed - t.speed) * dt;
+
+          if (t.type === 'TAXI' && t.mesh.position.z > -62 && t.mesh.position.z < -26) {
+            t.weaveTriggered = true;
+            if (!t.honked) { t.honked = true; sound.playTaxiHorn(); }
+          }
+          if (t.weaveTriggered) {
+            const destX = LANES[t.targetLane], lDiff = destX - t.currentX;
+            t.currentX += lDiff * Math.min(1, dt * 6.5);
+            t.mesh.position.x = t.currentX;
+          }
+
+          const dz = Math.abs(t.mesh.position.z - playerCar.position.z);
+          const dx = Math.abs(t.mesh.position.x - playerCar.position.x);
+
+          if (dz < (t.length * 0.5) + 1.55 && dx < 1.25) {
+            if (GameState.hasShield) {
+              GameState.hasShield = false; GameState.shakeIntensity = 0.45; sound.playCrash();
+              spawnExplosion(t.mesh.position.x, 0.8, t.mesh.position.z, 0x00f3ff, 20);
+              scene.remove(t.mesh); trafficCars.splice(i, 1); continue;
+            } else { triggerCrash(); break; }
+          }
+
+          if (!t.nearMissed && t.mesh.position.z > 1.2 && dx < 2.75) {
+            t.nearMissed = true;
+            GameState.nearMissCount++;
+            GameState.combo = Math.min(10, GameState.combo + 1);
+            GameState.comboTimer = 4.0;
+            checkMissionProgress('nearMisses', 1);
+            checkMissionProgress('combo', GameState.combo);
+
+            if (t.type === 'TAXI') {
+              const bonus = 100 * GameState.combo;
+              GameState.score += bonus; GameState.nitro = Math.min(100, GameState.nitro + 26);
+              sound.playTaxiHorn(); spawnPopup(`SHO'T LEFT! +${bonus}`, '#ffbe0b', '1.2rem');
+            } else {
+              const bonus = 50 * GameState.combo;
+              GameState.score += bonus; GameState.nitro = Math.min(100, GameState.nitro + 18);
+              sound.playNearMiss(); spawnPopup(`SHARP! +${bonus}`, '#00f3ff', '1.15rem');
+            }
+          }
+          if (t.mesh.position.z > 24) { scene.remove(t.mesh); trafficCars.splice(i, 1); }
+        }
+
+        for (let i = obstaclesList.length - 1; i >= 0; i--) {
+          const obs = obstaclesList[i];
+          obs.mesh.position.z += GameState.currentSpeed * dt;
+          const dz = Math.abs(obs.mesh.position.z - playerCar.position.z);
+          const dx = Math.abs(obs.mesh.position.x - playerCar.position.x);
+
+          if (dz < 1.6 && dx < 1.2) {
+            if (GameState.hasShield) {
+              GameState.hasShield = false; sound.playCrash();
+              scene.remove(obs.mesh); obstaclesList.splice(i, 1); continue;
+            }
+            if (obs.type === 'POTHOLE') {
+              GameState.currentSpeed *= 0.62; GameState.combo = 1; GameState.shakeIntensity = 0.48;
+              sound.playCrash(); spawnPopup('💥 EISH! POTHOLE!', '#ff8800', '1.1rem');
+              StorageManager.data.totalPotholes = (StorageManager.data.totalPotholes || 0) + 1;
+              StorageManager.save();
+              scene.remove(obs.mesh); obstaclesList.splice(i, 1); continue;
+            } else { triggerCrash(); break; }
+          }
+          if (obs.mesh.position.z > 20) { scene.remove(obs.mesh); obstaclesList.splice(i, 1); }
+        }
+
+        for (let i = powerUpsList.length - 1; i >= 0; i--) {
+          const pu = powerUpsList[i];
+          pu.mesh.position.z += GameState.currentSpeed * dt;
+          pu.mesh.rotation.y += 3.5 * dt;
+          const dz = Math.abs(pu.mesh.position.z - playerCar.position.z);
+          const dx = Math.abs(pu.mesh.position.x - playerCar.position.x);
+
+          if (dz < 2.1 && dx < 1.4) {
+            sound.playCoin();
+            if (pu.type === 'SHIELD') GameState.hasShield = true;
+            else if (pu.type === 'MAGNET') GameState.magnetTimer = 8.0;
+            else if (pu.type === 'BOOST') GameState.nitro = 100;
+            scene.remove(pu.mesh); powerUpsList.splice(i, 1); continue;
+          }
+          if (pu.mesh.position.z > 20) { scene.remove(pu.mesh); powerUpsList.splice(i, 1); }
+        }
+
+        for (let i = coinsList.length - 1; i >= 0; i--) {
+          const c = coinsList[i];
+          c.mesh.position.z += GameState.currentSpeed * dt;
+          if (GameState.magnetTimer > 0 && c.mesh.position.z > -32 && c.mesh.position.z < 10) {
+            c.mesh.position.x += (playerCar.position.x - c.mesh.position.x) * 7.5 * dt;
+          }
+          const dz = Math.abs(c.mesh.position.z - playerCar.position.z);
+          const dx = Math.abs(c.mesh.position.x - playerCar.position.x);
+
+          if (!c.collected && dz < 2.1 && dx < 1.35) {
+            c.collected = true; GameState.runCoins += 1; GameState.score += 25 * GameState.combo;
+            GameState.nitro = Math.min(100, GameState.nitro + 6);
+            sound.playCoin();
+            checkMissionProgress('coins', 1);
+            scene.remove(c.mesh); coinsList.splice(i, 1); continue;
+          }
+          if (c.mesh.position.z > 20) { scene.remove(c.mesh); coinsList.splice(i, 1); }
+        }
+
+        updateHUD();
+      }
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.life -= dt * 1.9; p.vy -= 26 * dt;
+        p.mesh.position.addScaledVector(new THREE.Vector3(p.vx, p.vy, p.vz), dt);
+        p.mesh.scale.setScalar(Math.max(0.01, p.life));
+        if (p.life <= 0) { scene.remove(p.mesh); particles.splice(i, 1); }
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('load', () => {
+      updateMenuStats();
+      applySectorTheme(0, false);
+      showScreen('MENU');
+      requestAnimationFrame(animate);
+    });
+  </script>
+
+  <!-- ==========================================
+       FIREBASE LEADERBOARD (needs http(s) hosting)
+       ========================================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import {
+      getFirestore, collection, doc, setDoc, getDocs,
+      query, orderBy, limit, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA33rW8MvjmM1BsxG2WZ3ToIYMcYYKWe4M",
+      authDomain: "geetech-drive.firebaseapp.com",
+      projectId: "geetech-drive",
+      storageBucket: "geetech-drive.firebasestorage.app",
+      messagingSenderId: "733714005640",
+      appId: "1:733714005640:web:5d1b70332ab2246965a93d",
+      measurementId: "G-BXR07RLV05"
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const store = {
+      get(k, d = '') { try { return localStorage.getItem(k) ?? d; } catch (e) { return d; } },
+      set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+    };
+
+    let db = null;
+    try { db = getFirestore(initializeApp(firebaseConfig)); }
+    catch (e) { console.warn('Firebase init failed:', e); }
+
+    // One anonymous player id per device = one leaderboard row per player
+    let pid = store.get('geetech_lb_pid');
+    if (!pid) {
+      pid = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2)).replace(/[^a-zA-Z0-9-]/g, '');
+      store.set('geetech_lb_pid', pid);
+    }
+
+    const cleanName = (s) => String(s || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 14);
+    const postedBest = () => Number(store.get('geetech2_lb_best', '0')) || 0;
+    let lastRun = { score: 0, distance: 0 };
+
+    async function post(name, score, distance) {
+      if (!db) throw new Error('offline');
+      await setDoc(doc(db, 'scores_stage2', pid), {
+        name, score, distance, updatedAt: serverTimestamp()
+      });
+      store.set('geetech_lb_name', name);
+      store.set('geetech2_lb_best', String(score));
+    }
+
+    async function refresh() {
+      const list = $('lb-list'), status = $('lb-status');
+      list.textContent = '';
+      status.textContent = 'Loading…';
+      if (!db) { status.textContent = 'Leaderboard offline'; return; }
+      try {
+        const snap = await getDocs(query(collection(db, 'scores_stage2'), orderBy('score', 'desc'), limit(20)));
+        if (snap.empty) { status.textContent = 'No scores yet. Be the first!'; return; }
+        status.textContent = 'Top 20 drivers';
+        const medals = ['🥇', '🥈', '🥉'];
+        let rank = 0;
+        snap.forEach((d) => {
+          const v = d.data(), mine = d.id === pid;
+          const row = document.createElement('div');
+          row.className = 'flex items-center gap-2 px-3 py-2 rounded-xl border ' +
+            (mine ? 'bg-cyan-500/15 border-cyan-400/60' : 'bg-white/5 border-white/10');
+          const r = document.createElement('div');
+          r.className = 'w-8 text-center font-display text-sm font-black ' + (rank < 3 ? '' : 'text-slate-400');
+          r.textContent = rank < 3 ? medals[rank] : String(rank + 1);
+          const n = document.createElement('div');
+          n.className = 'flex-1 min-w-0 truncate font-display text-sm font-bold ' + (mine ? 'text-cyan-300' : 'text-white');
+          n.textContent = (v.name || 'Driver') + (mine ? ' (you)' : '');
+          const s = document.createElement('div');
+          s.className = 'font-display text-sm font-black text-amber-300';
+          s.textContent = Number(v.score || 0).toLocaleString();
+          row.append(r, n, s);
+          list.appendChild(row);
+          rank++;
+        });
+      } catch (e) {
+        console.error('Leaderboard load failed:', e);
+        status.textContent = 'Could not load. Check connection or Firestore rules.';
+      }
+    }
+
+    function setOverStatus(msg) { $('lb-over-status').textContent = msg; }
+
+    async function manualPost() {
+      const name = cleanName($('lb-name-input').value);
+      if (!name) { setOverStatus('Enter a name first.'); return; }
+      const score = Math.max(lastRun.score, postedBest());
+      if (score <= 0) return;
+      const btn = $('btn-lb-post');
+      btn.disabled = true; setOverStatus('Posting…');
+      try {
+        await post(name, score, lastRun.distance);
+        setOverStatus('Posted as ' + name + ' ✓ Best: ' + score.toLocaleString());
+      } catch (e) {
+        console.error('Post failed:', e);
+        setOverStatus('Could not post score. Try again.');
+      }
+      btn.disabled = false;
+    }
+
+    window.GeetechLB = {
+      refresh,
+      async onGameOver(score, distance) {
+        lastRun = { score, distance };
+        const box = $('lb-over-box');
+        if (!db || score <= 0) { box.classList.add('hidden'); return; }
+        box.classList.remove('hidden');
+        const saved = cleanName(store.get('geetech_lb_name'));
+        $('lb-name-input').value = saved;
+        if (saved && score > postedBest()) {
+          setOverStatus('Posting…');
+          try {
+            await post(saved, score, distance);
+            setOverStatus('New personal best posted as ' + saved + ' ✓');
+          } catch (e) {
+            console.error('Auto-post failed:', e);
+            setOverStatus('Could not post score. Tap POST to retry.');
+          }
+        } else if (saved) {
+          setOverStatus('Your leaderboard best is ' + postedBest().toLocaleString() + '.');
+        } else {
+          setOverStatus('Enter a name to join the leaderboard.');
+        }
+      }
+    };
+
+    $('btn-open-leaderboard').addEventListener('click', () => showScreen('LEADERBOARD'));
+    $('btn-close-leaderboard').addEventListener('click', () => showScreen('MENU'));
+    $('lb-refresh').addEventListener('click', refresh);
+    $('btn-lb-post').addEventListener('click', manualPost);
+  </script>
+<script>
+    // ==========================================
+    // DONATIONS — EDIT THIS CONFIG
+    // ==========================================
+    const DONATE_CONFIG = {
+      // Paste your donation page link (e.g. PayFast, Yoco, Ko-fi, Patreon, BuyMeACoffee).
+      // Use {amount} where the amount goes, if your link supports it. Leave '' to hide the Donate button.
+      url: 'https://www.paypal.com/ncp/payment/D3TW676J982KY',
+      amounts: [],     // rand presets e.g. [20, 50, 100, 200]; leave [] for a fixed link like PayPal's
+      // Optional: bank / EFT details shown with a COPY button. Leave '' to hide.
+      details: ''
+    };
+
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const openBtn = $('btn-open-donate');
+      const MIN_RUNS = 3; // show the prompt on the game-over screen after this many runs
+      const runs = () => { try { return Number(localStorage.getItem('geetech_runs')) || 0; } catch (e) { return 0; } };
+      window.donateCountRun = () => { try { localStorage.setItem('geetech_runs', String(runs() + 1)); } catch (e) {} };
+      window.donateRefresh = () => {
+        const enabled = DONATE_CONFIG.url || DONATE_CONFIG.details;
+        openBtn.classList.toggle('hidden', !(enabled && runs() >= MIN_RUNS));
+      };
+
+      let amount = DONATE_CONFIG.amounts[1] || DONATE_CONFIG.amounts[0];
+      const box = $('donate-amounts');
+      function renderAmounts() {
+        box.innerHTML = '';
+        DONATE_CONFIG.amounts.forEach(a => {
+          const b = document.createElement('button');
+          b.textContent = 'R' + a;
+          b.className = 'py-2 rounded-xl border font-display text-xs font-bold active:scale-95 transition ' +
+            (a === amount ? 'bg-emerald-500/25 border-emerald-400 text-emerald-200' : 'bg-white/5 border-white/15 text-slate-200');
+          b.addEventListener('click', () => { amount = a; renderAmounts(); });
+          box.appendChild(b);
+        });
+      }
+      renderAmounts();
+
+      if (!DONATE_CONFIG.url) { $('btn-donate-go').classList.add('hidden'); }
+      if (!DONATE_CONFIG.url || DONATE_CONFIG.amounts.length === 0) { box.classList.add('hidden'); }
+      if (DONATE_CONFIG.details) {
+        $('donate-details').classList.remove('hidden');
+        $('donate-details-text').textContent = DONATE_CONFIG.details;
+        $('btn-donate-copy').addEventListener('click', async () => {
+          try { await navigator.clipboard.writeText(DONATE_CONFIG.details); showToast('Details copied ✓'); }
+          catch (e) { showToast('Could not copy'); }
+        });
+      }
+
+      openBtn.addEventListener('click', () => showScreen('DONATE'));
+      $('btn-close-donate').addEventListener('click', () => showScreen('GAMEOVER'));
+      $('btn-donate-go').addEventListener('click', () => {
+        const link = DONATE_CONFIG.url.replace('{amount}', amount);
+        window.open(link, '_blank', 'noopener');
+      });
+    })();
+  </script>
+<script>
+    if (!(StorageManager.data.unlockedCars || []).includes('BMW')) {
+      document.getElementById('screen-locked').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
