@@ -179,71 +179,77 @@
     <div id="popups-layer" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
 
     <!-- TOP HUD -->
-    <header id="top-hud" class="absolute top-0 left-0 right-0 p-4 pt-5 flex items-start justify-between z-30 pointer-events-none">
+    <header id="top-hud" class="absolute top-0 left-0 right-0 p-3.5 pt-5 flex items-start justify-between gap-1.5 z-30 pointer-events-none">
       <div id="gameplay-stats" class="hidden flex-col gap-1.5">
-        <div class="hud-pill rounded-2xl px-3.5 py-1.5 flex items-center gap-3">
+        <div class="hud-pill rounded-2xl px-3 py-1.5 flex items-center gap-2.5">
           <div>
-            <div class="text-[10px] uppercase tracking-widest text-cyan-300 font-bold leading-none">Score</div>
-            <div id="hud-score" class="font-display text-xl font-black text-white leading-tight">0</div>
+            <div class="text-[9px] uppercase tracking-widest text-cyan-300 font-bold leading-none">Score</div>
+            <div id="hud-score" class="font-display text-lg font-black text-white leading-tight">0</div>
           </div>
           <div class="h-6 w-[1px] bg-white/15"></div>
           <div>
-            <div class="text-[10px] uppercase tracking-widest text-pink-400 font-bold leading-none">Combo</div>
-            <div id="hud-combo" class="font-display text-base font-bold text-pink-300 leading-tight">x1</div>
+            <div class="text-[9px] uppercase tracking-widest text-pink-400 font-bold leading-none">Combo</div>
+            <div id="hud-combo" class="font-display text-sm font-bold text-pink-300 leading-tight">x1</div>
           </div>
         </div>
-        <div class="flex flex-wrap items-center gap-1.5">
-          <div class="hud-pill rounded-full px-3 py-0.5 text-xs font-bold text-slate-200 tracking-wider">
+        <div class="flex flex-wrap items-center gap-1">
+          <div class="hud-pill rounded-full px-2.5 py-0.5 text-[11px] font-bold text-slate-200 tracking-wider">
             <span id="hud-distance">0</span>m
           </div>
-          <div id="zone-badge" class="hud-pill rounded-full px-2.5 py-0.5 text-[10px] font-display font-bold uppercase tracking-wider text-cyan-300">
+          <div id="zone-badge" class="hud-pill rounded-full px-2 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider text-cyan-300">
             JOBURG
           </div>
-          <div id="weather-badge" class="hidden hud-pill rounded-full px-2.5 py-0.5 text-[10px] font-display font-bold uppercase tracking-wider text-sky-300 border border-sky-400">
+          <div id="weather-badge" class="hidden hud-pill rounded-full px-2 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider text-sky-300 border border-sky-400">
             🌧️ STORM
           </div>
-          <div id="blackout-badge" class="hidden hud-pill blackout-badge rounded-full px-2.5 py-0.5 text-[10px] font-display font-black uppercase tracking-wider text-amber-300 bg-amber-950/80">
+          <div id="blackout-badge" class="hidden hud-pill blackout-badge rounded-full px-2 py-0.5 text-[9px] font-display font-black uppercase tracking-wider text-amber-300 bg-amber-950/80">
             ⚡ STAGE 4
           </div>
-          <div id="shield-badge" class="hidden hud-pill rounded-full px-2.5 py-0.5 text-[10px] font-display font-bold uppercase tracking-wider text-cyan-300 border border-cyan-400">
+          <div id="shield-badge" class="hidden hud-pill rounded-full px-2 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider text-cyan-300 border border-cyan-400">
             🛡️ ARMOUR
           </div>
-          <div id="magnet-badge" class="hidden hud-pill rounded-full px-2.5 py-0.5 text-[10px] font-display font-bold uppercase tracking-wider text-pink-300 border border-pink-400">
+          <div id="magnet-badge" class="hidden hud-pill rounded-full px-2 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider text-pink-300 border border-pink-400">
             🧲 SPAZA
           </div>
         </div>
       </div>
 
-      <div id="menu-best-badge" class="hud-pill rounded-2xl px-3.5 py-2 flex items-center gap-2 pointer-events-auto">
-        <span class="text-amber-400 text-base">🏆</span>
+      <div id="menu-best-badge" class="hud-pill rounded-2xl px-3 py-2 flex items-center gap-1.5 pointer-events-auto shrink-0">
+        <span class="text-amber-400 text-sm">🏆</span>
         <div>
-          <div class="text-[9px] uppercase tracking-widest text-slate-400 font-bold leading-none">Best Score</div>
-          <div id="menu-high-score" class="font-display text-sm font-bold text-white">0</div>
+          <div class="text-[8px] uppercase tracking-widest text-slate-400 font-bold leading-none">Best</div>
+          <div id="menu-high-score" class="font-display text-xs font-bold text-white">0</div>
         </div>
       </div>
 
-      <div class="flex items-center gap-2 pointer-events-auto">
-        <div class="hud-pill rounded-full px-3 py-1.5 flex items-center gap-1.5">
-          <span class="w-4 h-4 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-300 inline-flex items-center justify-center text-[10px] font-black text-slate-950 shadow-sm">R</span>
-          <span id="hud-coins" class="font-display text-sm font-bold text-amber-300">0</span>
+      <div class="flex items-center gap-1.5 pointer-events-auto shrink-0">
+        <div class="hud-pill rounded-full px-2.5 py-1.5 flex items-center gap-1">
+          <span class="w-4 h-4 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-300 inline-flex items-center justify-center text-[9px] font-black text-slate-950 shadow-sm">R</span>
+          <span id="hud-coins" class="font-display text-xs font-bold text-amber-300">0</span>
         </div>
 
-        <button id="btn-radio" aria-label="Toggle Amapiano Radio" class="hud-pill h-10 px-3 rounded-full flex items-center gap-1.5 text-white active:scale-90 transition border border-pink-500/40">
-          <span class="text-xs">📻</span>
-          <span id="radio-station-label" class="font-display text-[10px] font-black tracking-wider text-pink-300">PIANO FM</span>
-        </button>
+        <!-- RADIO STATION + NEXT TRACK CONTROLS -->
+        <div class="hud-pill h-9 rounded-full flex items-center border border-pink-500/40 overflow-hidden">
+          <button id="btn-radio" aria-label="Switch Radio Station" class="h-full pl-2.5 pr-1.5 flex items-center gap-1 text-white active:bg-white/10 transition">
+            <span class="text-xs">📻</span>
+            <span id="radio-station-label" class="font-display text-[9px] font-black tracking-wider text-pink-300">PIANO FM</span>
+          </button>
+          <button id="btn-next-track" aria-label="Next Track" title="Skip Track" class="h-full px-2 border-l border-white/15 text-[10px] font-bold text-cyan-300 active:bg-white/15 transition">
+            ⏭
+          </button>
+        </div>
 
-        <button id="btn-mute" aria-label="Toggle Sound" class="hud-pill w-10 h-10 rounded-full flex items-center justify-center text-white active:scale-90 transition">
-          <svg id="icon-sound-on" class="w-5 h-5 text-cyan-300" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <button id="btn-mute" aria-label="Toggle Sound" class="hud-pill w-9 h-9 rounded-full flex items-center justify-center text-white active:scale-90 transition">
+          <svg id="icon-sound-on" class="w-4 h-4 text-cyan-300" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14"/>
           </svg>
-          <svg id="icon-sound-off" class="w-5 h-5 text-rose-400 hidden" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <svg id="icon-sound-off" class="w-4 h-4 text-rose-400 hidden" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/>
           </svg>
         </button>
 
-        <button id="btn-pause" aria-label="Pause Game" class="hidden hud-pill w-10 h-10 rounded-full flex items-center justify-center text-white active:scale-90 transition">
-          <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+        <button id="btn-pause" aria-label="Pause Game" class="hidden hud-pill w-9 h-9 rounded-full flex items-center justify-center text-white active:scale-90 transition">
+          <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
             <rect x="6" y="5" width="4" height="14" rx="1.5"/>
             <rect x="14" y="5" width="4" height="14" rx="1.5"/>
           </svg>
@@ -568,7 +574,7 @@
         customPlate: 'GEETECH GP',
         upgrades: {},
         muted: false,
-        radioStation: 1,
+        radioStation: 1, // 0 = OFF, 1 = PIANO FM (3 tracks), 2 = HIP-HOP FM (2 tracks)
         totalNearMisses: 0,
         totalDistance: 0,
         totalBlackouts: 0,
@@ -640,13 +646,133 @@
     StorageManager.load();
 
     // ==========================================
-    // 2. PROCEDURAL WEB AUDIO & AMAPIANO ENGINE
+    // 2. KASI FM RADIO & PROCEDURAL AUDIO ENGINE
+    //    - PIANO FM: 3 Full Amapiano Tracks
+    //    - HIP-HOP FM: 2 Full Mzansi Hip-Hop Tracks
     // ==========================================
+    const RADIO_STATIONS = [
+      { id: 0, label: 'RADIO OFF', tracks: [] },
+      {
+        id: 1,
+        label: 'PIANO FM',
+        tracks: [
+          {
+            title: '1/3 · SOWETO LOG DRUM',
+            genre: 'AMAPIANO',
+            bpm: 112,
+            // 64-step (4-bar) syncopated log drum bassline (Hz)
+            bass: {
+              0: 65.41, 3: 65.41, 6: 77.78, 10: 58.27, 12: 65.41, 14: 87.31,
+              16: 65.41, 19: 65.41, 22: 77.78, 25: 98.00, 28: 77.78, 30: 58.27,
+              32: 58.27, 35: 58.27, 38: 73.42, 42: 51.91, 44: 58.27, 46: 77.78,
+              48: 65.41, 51: 77.78, 54: 98.00, 57: 116.54, 60: 98.00, 62: 77.78
+            },
+            chords: {
+              0: [261.63, 311.13, 392.00, 466.16],  // Cm7
+              16: [233.08, 293.66, 349.23, 415.30], // Bbmaj7
+              32: [207.65, 261.63, 311.13, 392.00], // Abmaj7
+              48: [196.00, 233.08, 293.66, 349.23]  // Gm7
+            },
+            lead: { 12: 523.25, 14: 587.33, 28: 622.25, 44: 466.16, 60: 523.25, 62: 622.25 }
+          },
+          {
+            title: '2/3 · GROOVE IN PTA (SGIJA)',
+            genre: 'AMAPIANO',
+            bpm: 114,
+            bass: {
+              0: 55.00, 2: 55.00, 3: 82.41, 6: 65.41, 8: 55.00, 11: 73.42, 14: 82.41,
+              16: 55.00, 18: 55.00, 19: 98.00, 22: 82.41, 24: 65.41, 27: 73.42, 30: 82.41,
+              32: 49.00, 34: 49.00, 35: 73.42, 38: 58.27, 40: 49.00, 43: 65.41, 46: 73.42,
+              48: 55.00, 51: 65.41, 54: 73.42, 56: 82.41, 58: 98.00, 60: 82.41, 62: 65.41
+            },
+            chords: {
+              0: [220.00, 261.63, 329.63, 392.00],  // Am7
+              16: [220.00, 261.63, 329.63, 440.00], // Am
+              32: [196.00, 246.94, 293.66, 349.23], // G7
+              48: [174.61, 220.00, 261.63, 329.63]  // Fmaj7
+            },
+            lead: { 6: 659.25, 14: 783.99, 22: 659.25, 30: 880.00, 38: 587.33, 54: 659.25, 60: 783.99 }
+          },
+          {
+            title: '3/3 · DURBAN SUNSET (PRIVATE)',
+            genre: 'AMAPIANO',
+            bpm: 111,
+            bass: {
+              0: 73.42, 4: 73.42, 7: 87.31, 10: 110.00, 14: 87.31,
+              16: 65.41, 20: 65.41, 23: 77.78, 26: 98.00, 30: 77.78,
+              32: 58.27, 36: 58.27, 39: 73.42, 42: 87.31, 46: 73.42,
+              48: 65.41, 51: 73.42, 54: 87.31, 58: 110.00, 61: 98.00
+            },
+            chords: {
+              0: [293.66, 349.23, 440.00, 523.25],  // Dm7
+              16: [261.63, 311.13, 392.00, 466.16], // Cm7
+              32: [233.08, 293.66, 349.23, 440.00], // Bbmaj7
+              48: [220.00, 277.18, 329.63, 392.00]  // A7
+            },
+            lead: { 4: 587.33, 12: 659.25, 20: 523.25, 28: 587.33, 36: 466.16, 52: 554.37, 60: 659.25 }
+          }
+        ]
+      },
+      {
+        id: 2,
+        label: 'HIP-HOP FM',
+        tracks: [
+          {
+            title: '1/2 · KASI TRAP 808',
+            genre: 'HIPHOP',
+            bpm: 138,
+            // Heavy sliding 808 bassline
+            bass: {
+              0: 41.20, 6: 41.20, 10: 49.00, 14: 55.00,
+              16: 41.20, 22: 41.20, 26: 61.74, 30: 49.00,
+              32: 36.71, 38: 36.71, 42: 41.20, 46: 49.00,
+              48: 41.20, 54: 55.00, 58: 65.41, 62: 49.00
+            },
+            chords: {
+              0: [164.81, 196.00, 246.94], // Em
+              32: [146.83, 174.61, 220.00] // Dm
+            },
+            lead: {
+              0: 659.25, 2: 783.99, 4: 987.77, 8: 783.99, 12: 659.25,
+              16: 659.25, 18: 783.99, 20: 1046.50, 24: 987.77, 28: 783.99,
+              32: 587.33, 34: 698.46, 36: 880.00, 40: 698.46, 44: 587.33,
+              48: 659.25, 50: 783.99, 52: 987.77, 56: 1174.66, 60: 987.77
+            }
+          },
+          {
+            title: '2/2 · BOOM BAP JOZI',
+            genre: 'HIPHOP',
+            bpm: 94,
+            // Classic soulful Hip-Hop bass groove
+            bass: {
+              0: 55.00, 3: 55.00, 7: 65.41, 10: 73.42, 14: 65.41,
+              16: 49.00, 19: 49.00, 23: 58.27, 26: 65.41, 30: 58.27,
+              32: 43.65, 35: 43.65, 39: 55.00, 42: 65.41, 46: 55.00,
+              48: 41.20, 51: 49.00, 54: 55.00, 58: 65.41, 62: 49.00
+            },
+            chords: {
+              0: [220.00, 261.63, 329.63, 392.00],  // Am7
+              16: [196.00, 246.94, 293.66, 349.23], // G7
+              32: [174.61, 220.00, 261.63, 329.63], // Fmaj7
+              48: [164.81, 207.65, 246.94, 329.63]  // E7
+            },
+            lead: {
+              2: 440.00, 6: 523.25, 10: 659.25, 18: 392.00, 22: 493.88,
+              34: 349.23, 38: 440.00, 50: 329.63, 54: 415.30, 60: 493.88
+            }
+          }
+        ]
+      }
+    ];
+
     class SoundEngine {
       constructor() {
         this.ctx = null;
         this.muted = StorageManager.data.muted;
         this.radioStation = StorageManager.data.radioStation ?? 1;
+        this.trackIndex = 0;
+        this.barRepeatCount = 0;
+
         this.engineOsc = null;
         this.engineGain = null;
         this.musicGain = null;
@@ -680,10 +806,10 @@
         this.engineOsc.start();
 
         this.musicGain = this.ctx.createGain();
-        this.musicGain.gain.value = (this.muted || this.radioStation === 0) ? 0 : 0.42;
+        this.musicGain.gain.value = (this.muted || this.radioStation === 0) ? 0 : 0.44;
         this.musicGain.connect(this.ctx.destination);
 
-        this.startAmapianoRadio();
+        this.startRadioSequencer();
       }
 
       resume() {
@@ -692,23 +818,55 @@
         }
       }
 
+      getCurrentStation() {
+        return RADIO_STATIONS[this.radioStation] || RADIO_STATIONS[0];
+      }
+
+      getCurrentTrack() {
+        const st = this.getCurrentStation();
+        if (!st.tracks || st.tracks.length === 0) return null;
+        return st.tracks[this.trackIndex % st.tracks.length];
+      }
+
       cycleRadio() {
         this.init();
         this.resume();
-        this.radioStation = (this.radioStation + 1) % 3;
+        this.radioStation = (this.radioStation + 1) % RADIO_STATIONS.length;
+        this.trackIndex = 0;
+        this.stepIndex = 0;
+        this.barRepeatCount = 0;
         StorageManager.data.radioStation = this.radioStation;
         StorageManager.save();
 
         if (this.musicGain && this.ctx) {
-          const vol = (this.muted || this.radioStation === 0) ? 0 : 0.42;
+          const vol = (this.muted || this.radioStation === 0) ? 0 : 0.44;
           this.musicGain.gain.setTargetAtTime(vol, this.ctx.currentTime, 0.08);
         }
-        return this.radioStation;
+        return this.getCurrentTrack();
+      }
+
+      nextTrack() {
+        this.init();
+        this.resume();
+        if (this.radioStation === 0) {
+          this.radioStation = 1;
+          StorageManager.data.radioStation = 1;
+          StorageManager.save();
+        }
+        const st = this.getCurrentStation();
+        this.trackIndex = (this.trackIndex + 1) % st.tracks.length;
+        this.stepIndex = 0;
+        this.barRepeatCount = 0;
+
+        if (this.musicGain && this.ctx && !this.muted) {
+          this.musicGain.gain.setTargetAtTime(0.44, this.ctx.currentTime, 0.08);
+        }
+        return this.getCurrentTrack();
       }
 
       setBlackoutDucking(isBlackout) {
         if (!this.musicGain || !this.ctx || this.muted || this.radioStation === 0) return;
-        const targetVol = isBlackout ? 0.16 : 0.42;
+        const targetVol = isBlackout ? 0.16 : 0.44;
         this.musicGain.gain.setTargetAtTime(targetVol, this.ctx.currentTime, 0.25);
       }
 
@@ -717,81 +875,171 @@
         StorageManager.data.muted = mute;
         StorageManager.save();
         if (this.engineGain && this.ctx) {
-          this.engineGain.gain.setTargetAtTime(mute || !this.isRunning ? 0 : 0.06, this.ctx.currentTime, 0.08);
+          this.engineGain.gain.setTargetAtTime(mute || !this.isRunning ? 0 : 0.055, this.ctx.currentTime, 0.08);
         }
         if (this.musicGain && this.ctx) {
-          const targetMusic = (mute || this.radioStation === 0) ? 0 : 0.42;
+          const targetMusic = (mute || this.radioStation === 0) ? 0 : 0.44;
           this.musicGain.gain.setTargetAtTime(targetMusic, this.ctx.currentTime, 0.08);
         }
       }
 
-      startAmapianoRadio() {
+      startRadioSequencer() {
         if (this.schedulerTimer) return;
         this.nextNoteTime = this.ctx.currentTime + 0.05;
 
         this.schedulerTimer = setInterval(() => {
-          if (!this.ctx || this.muted || this.radioStation === 0) {
+          const track = this.getCurrentTrack();
+          if (!this.ctx || this.muted || !track) {
             this.nextNoteTime = this.ctx ? this.ctx.currentTime + 0.05 : 0;
             return;
           }
-          const bpm = this.radioStation === 1 ? 112 : 114;
-          const sixteenth = (60 / bpm) / 4;
+          const sixteenth = (60 / track.bpm) / 4;
 
           while (this.nextNoteTime < this.ctx.currentTime + 0.12) {
-            this.schedulePianoStep(this.stepIndex, this.nextNoteTime, sixteenth);
+            this.scheduleTrackStep(track, this.stepIndex, this.nextNoteTime, sixteenth);
             this.nextNoteTime += sixteenth;
-            this.stepIndex = (this.stepIndex + 1) % 32;
+            this.stepIndex++;
+
+            if (this.stepIndex >= 64) {
+              this.stepIndex = 0;
+              this.barRepeatCount++;
+              // Auto-advance to next song on the station after 4 full loops (~32 seconds)
+              if (this.barRepeatCount >= 4) {
+                this.barRepeatCount = 0;
+                const st = this.getCurrentStation();
+                if (st.tracks.length > 1) {
+                  this.trackIndex = (this.trackIndex + 1) % st.tracks.length;
+                  const next = this.getCurrentTrack();
+                  if (next && typeof showToast === 'function') {
+                    showToast(`📻 NOW PLAYING: ${next.title}`);
+                  }
+                }
+              }
+            }
           }
         }, 25);
       }
 
-      schedulePianoStep(step, time, stepDur) {
+      scheduleTrackStep(track, step, time, stepDur) {
         const barStep = step % 16;
 
-        if (barStep % 4 === 0) {
-          this.triggerKick(time);
-        }
+        if (track.genre === 'AMAPIANO') {
+          // 1. 4-on-the-floor Amapiano Kick
+          if (barStep % 4 === 0) {
+            this.triggerKick(time, 125, 42, 0.38);
+          }
+          // 2. Signature Shaker & Hat Groove
+          if (barStep % 2 === 1 || barStep === 14) {
+            this.triggerShaker(time, barStep % 4 === 2 ? 0.095 : 0.045, 0.045);
+          }
+          // 3. Log Drum Bassline
+          if (track.bass[step]) {
+            this.triggerLogDrum(time, track.bass[step], stepDur * 2.3);
+          }
+          // 4. Rhodes Jazz Chords
+          if (track.chords[step]) {
+            this.triggerRhodesChord(time, track.chords[step], stepDur * 14);
+          }
+          // 5. Piano / Whistle Synth Accent
+          if (track.lead[step]) {
+            this.triggerSynthPluck(time, track.lead[step], stepDur * 1.8, 'triangle', 0.075);
+          }
+        } else {
+          // HIP-HOP STATION (Trap 808 or Boom Bap)
+          const isTrap = track.bpm > 115;
 
-        if (barStep % 2 === 1 || barStep === 14) {
-          this.triggerShaker(time, barStep % 4 === 2 ? 0.09 : 0.045);
-        }
+          // 1. Kick Pattern
+          if (isTrap) {
+            if (barStep === 0 || barStep === 7 || barStep === 10) {
+              this.triggerKick(time, 140, 38, 0.44);
+            }
+          } else {
+            if (barStep === 0 || barStep === 2 || barStep === 7 || barStep === 10) {
+              this.triggerKick(time, 130, 44, 0.44);
+            }
+          }
 
-        const station1Log = {
-          0: 65.41, 3: 65.41, 6: 77.78, 10: 58.27, 12: 65.41, 14: 87.31,
-          19: 65.41, 22: 77.78, 25: 98.00, 28: 77.78, 30: 58.27
-        };
+          // 2. Crisp Snare / Clap on beats 2 & 4 (steps 4 & 12 in Boom Bap, step 8 in half-time Trap)
+          if (isTrap) {
+            if (barStep === 8) this.triggerSnare(time, 0.24);
+          } else {
+            if (barStep === 4 || barStep === 12) this.triggerSnare(time, 0.26);
+          }
 
-        const station2Log = {
-          0: 55.00, 3: 65.41, 7: 73.42, 10: 82.41, 14: 65.41,
-          16: 55.00, 20: 73.42, 23: 82.41, 26: 98.00, 29: 82.41, 31: 65.41
-        };
+          // 3. Hi-Hats (Trap rapid rolls vs Boom Bap swung hats)
+          if (isTrap) {
+            this.triggerShaker(time, barStep % 2 === 0 ? 0.07 : 0.035, 0.025);
+            if (barStep === 13 || barStep === 14 || barStep === 15) {
+              this.triggerShaker(time + stepDur * 0.5, 0.05, 0.02);
+            }
+          } else {
+            if (barStep % 2 === 0) this.triggerShaker(time, 0.065, 0.035);
+          }
 
-        const pattern = this.radioStation === 1 ? station1Log : station2Log;
-        if (pattern[step]) {
-          this.triggerLogDrum(time, pattern[step], stepDur * 2.2);
-        }
+          // 4. Heavy 808 / Sub Bass
+          if (track.bass[step]) {
+            this.trigger808Bass(time, track.bass[step], stepDur * (isTrap ? 4.5 : 3.0));
+          }
 
-        if (step === 0 || step === 16) {
-          const chords1 = [[261.63, 311.13, 392.00, 466.16], [233.08, 293.66, 349.23, 415.30]];
-          const chords2 = [[220.00, 261.63, 329.63, 392.00], [196.00, 246.94, 293.66, 349.23]];
-          const chordSet = this.radioStation === 1 ? chords1 : chords2;
-          const chord = step === 0 ? chordSet[0] : chordSet[1];
-          this.triggerRhodesChord(time, chord, stepDur * 12);
+          // 5. Chords & Dark Bell / Soul Sample Lead
+          if (track.chords[step]) {
+            this.triggerRhodesChord(time, track.chords[step], stepDur * 16);
+          }
+          if (track.lead[step]) {
+            this.triggerSynthPluck(time, track.lead[step], stepDur * 1.6, isTrap ? 'sine' : 'triangle', 0.085);
+          }
         }
       }
 
-      triggerKick(time) {
+      triggerKick(time, startFreq, endFreq, vol) {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(125, time);
-        osc.frequency.exponentialRampToValueAtTime(42, time + 0.11);
-        gain.gain.setValueAtTime(0.38, time);
+        osc.frequency.setValueAtTime(startFreq, time);
+        osc.frequency.exponentialRampToValueAtTime(endFreq, time + 0.11);
+        gain.gain.setValueAtTime(vol, time);
         gain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
         osc.connect(gain);
         gain.connect(this.musicGain);
         osc.start(time);
         osc.stop(time + 0.19);
+      }
+
+      triggerSnare(time, vol) {
+        // Noise burst + tonal body snap
+        const bufferSize = Math.floor(this.ctx.sampleRate * 0.14);
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.35));
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 1800;
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(vol, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.13);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.musicGain);
+        noise.start(time);
+
+        const snap = this.ctx.createOscillator();
+        const snapGain = this.ctx.createGain();
+        snap.type = 'triangle';
+        snap.frequency.setValueAtTime(210, time);
+        snap.frequency.exponentialRampToValueAtTime(95, time + 0.06);
+        snapGain.gain.setValueAtTime(vol * 0.7, time);
+        snapGain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
+        snap.connect(snapGain);
+        snapGain.connect(this.musicGain);
+        snap.start(time);
+        snap.stop(time + 0.08);
       }
 
       triggerLogDrum(time, freq, duration) {
@@ -801,7 +1049,7 @@
         const filter = this.ctx.createBiquadFilter();
 
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq * 1.9, time);
+        osc.frequency.setValueAtTime(freq * 1.95, time);
         osc.frequency.exponentialRampToValueAtTime(freq, time + 0.045);
 
         clickOsc.type = 'sine';
@@ -809,11 +1057,11 @@
         clickOsc.frequency.exponentialRampToValueAtTime(freq, time + 0.025);
 
         filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(460, time);
+        filter.frequency.setValueAtTime(480, time);
         filter.frequency.exponentialRampToValueAtTime(160, time + duration);
 
         gain.gain.setValueAtTime(0.001, time);
-        gain.gain.linearRampToValueAtTime(0.55, time + 0.01);
+        gain.gain.linearRampToValueAtTime(0.56, time + 0.01);
         gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
 
         osc.connect(filter);
@@ -827,8 +1075,25 @@
         clickOsc.stop(time + 0.04);
       }
 
-      triggerShaker(time, volume) {
-        const bufferSize = Math.floor(this.ctx.sampleRate * 0.045);
+      trigger808Bass(time, freq, duration) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq * 1.35, time);
+        osc.frequency.exponentialRampToValueAtTime(freq, time + 0.055);
+
+        gain.gain.setValueAtTime(0.001, time);
+        gain.gain.linearRampToValueAtTime(0.52, time + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+        osc.connect(gain);
+        gain.connect(this.musicGain);
+        osc.start(time);
+        osc.stop(time + duration + 0.03);
+      }
+
+      triggerShaker(time, volume, dur) {
+        const bufferSize = Math.floor(this.ctx.sampleRate * dur);
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
@@ -843,7 +1108,7 @@
 
         const gain = this.ctx.createGain();
         gain.gain.setValueAtTime(volume, time);
-        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + dur * 0.9);
 
         noise.connect(filter);
         filter.connect(gain);
@@ -859,7 +1124,7 @@
           osc.frequency.setValueAtTime(freq, time);
 
           gain.gain.setValueAtTime(0.001, time);
-          gain.gain.linearRampToValueAtTime(0.055, time + 0.08);
+          gain.gain.linearRampToValueAtTime(0.05, time + 0.08);
           gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
 
           osc.connect(gain);
@@ -869,10 +1134,26 @@
         });
       }
 
+      triggerSynthPluck(time, freq, duration, type, vol) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, time);
+
+        gain.gain.setValueAtTime(0.001, time);
+        gain.gain.linearRampToValueAtTime(vol, time + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+        osc.connect(gain);
+        gain.connect(this.musicGain);
+        osc.start(time);
+        osc.stop(time + duration + 0.03);
+      }
+
       setEngineActive(active) {
         this.isRunning = active;
         if (!this.ctx || !this.engineGain) return;
-        const target = (!this.muted && active) ? 0.055 : 0.0;
+        const target = (!this.muted && active) ? 0.05 : 0.0;
         this.engineGain.gain.setTargetAtTime(target, this.ctx.currentTime, 0.1);
       }
 
@@ -1354,7 +1635,6 @@
       playerAccentMat = new THREE.MeshStandardMaterial({ color: carSpec.accentColor, roughness: 0.28, metalness: 0.62 });
       playerUnderglow.color.setHex(carSpec.bodyColor);
 
-      const darkMat = new THREE.MeshStandardMaterial({ color: 0x10151d, roughness: 0.32, metalness: 0.38 });
       const glassMat = new THREE.MeshStandardMaterial({ color: 0x142638, roughness: 0.12, metalness: 0.18, transparent: true, opacity: 0.92 });
       const rubberMat = new THREE.MeshStandardMaterial({ color: 0x080a0e, roughness: 0.94, metalness: 0.02 });
       const rimMat = new THREE.MeshStandardMaterial({ color: 0xc7d0d8, roughness: 0.2, metalness: 0.94 });
@@ -1787,7 +2067,7 @@
       toast.textContent = msg;
       toast.classList.remove('hidden');
       clearTimeout(toast._timer);
-      toast._timer = setTimeout(() => toast.classList.add('hidden'), 2200);
+      toast._timer = setTimeout(() => toast.classList.add('hidden'), 2400);
     }
 
     function updateHUD() {
@@ -1806,14 +2086,22 @@
       else nitroBtn.classList.remove('nitro-ready');
     }
 
-    const STATION_NAMES = ['RADIO OFF', 'PIANO FM', 'PRIVATE SCH'];
     function updateRadioUI() {
       const label = document.getElementById('radio-station-label');
+      const skipBtn = document.getElementById('btn-next-track');
       if (!label) return;
-      label.textContent = STATION_NAMES[sound.radioStation];
-      label.className = sound.radioStation === 0
-        ? 'font-display text-[10px] font-black tracking-wider text-slate-400'
-        : 'font-display text-[10px] font-black tracking-wider text-pink-300';
+      const st = sound.getCurrentStation();
+      label.textContent = st.label;
+      if (st.id === 0) {
+        label.className = 'font-display text-[9px] font-black tracking-wider text-slate-400';
+        if (skipBtn) skipBtn.classList.add('hidden');
+      } else if (st.id === 1) {
+        label.className = 'font-display text-[9px] font-black tracking-wider text-pink-300';
+        if (skipBtn) skipBtn.classList.remove('hidden');
+      } else {
+        label.className = 'font-display text-[9px] font-black tracking-wider text-amber-300';
+        if (skipBtn) skipBtn.classList.remove('hidden');
+      }
     }
 
     function updateMenuStats() {
@@ -2129,9 +2417,16 @@
     document.getElementById('btn-garage-done').addEventListener('click', () => showScreen('MENU'));
 
     document.getElementById('btn-radio').addEventListener('click', () => {
-      const st = sound.cycleRadio();
+      const track = sound.cycleRadio();
       updateRadioUI();
-      showToast(`📻 TUNED TO: ${STATION_NAMES[st]}`);
+      if (!track) showToast('📻 RADIO TURNED OFF');
+      else showToast(`📻 ${sound.getCurrentStation().label}: ${track.title}`);
+    });
+
+    document.getElementById('btn-next-track').addEventListener('click', () => {
+      const track = sound.nextTrack();
+      updateRadioUI();
+      if (track) showToast(`⏭ ${sound.getCurrentStation().label}: ${track.title}`);
     });
 
     document.getElementById('btn-mute').addEventListener('click', () => {
