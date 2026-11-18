@@ -336,6 +336,14 @@
           </button>
         </div>
 
+        <button id="btn-open-leaderboard" class="hud-pill rounded-2xl py-3 px-4 flex items-center justify-between text-left active:scale-95 transition border border-pink-500/40">
+          <div>
+            <div class="text-[10px] font-display font-bold text-pink-300">LEADERBOARD</div>
+            <div class="text-[9px] text-slate-300">See the top drivers in Mzansi</div>
+          </div>
+          <span class="text-lg">🏆</span>
+        </button>
+
         <button id="btn-play" class="arcade-btn w-full py-4 rounded-2xl text-lg uppercase tracking-widest flex items-center justify-center gap-2.5 cursor-pointer">
           <span>TAP TO GO</span>
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -494,6 +502,15 @@
           <span class="text-xs text-amber-200/80 font-sans font-semibold">RANDS EARNED</span>
         </div>
 
+        <div id="lb-over-box" class="hidden flex flex-col gap-2 bg-pink-950/30 p-3 rounded-2xl border border-pink-500/30 text-left">
+          <div class="font-display font-bold text-[10px] text-pink-300 uppercase">🏆 Post to the leaderboard</div>
+          <div class="flex gap-2">
+            <input id="lb-name-input" type="text" maxlength="14" placeholder="Your name" autocomplete="off" style="user-select: text; -webkit-user-select: text; touch-action: auto;" class="flex-1 min-w-0 bg-slate-900 text-white font-display font-bold text-sm px-3 py-2 rounded-xl border border-white/20 outline-none focus:border-pink-400" />
+            <button id="btn-lb-post" class="px-3 py-2 rounded-xl bg-pink-500 text-white font-display text-xs font-black tracking-wider active:scale-95 transition">POST</button>
+          </div>
+          <div id="lb-over-status" class="text-[11px] text-slate-300 min-h-[14px]"></div>
+        </div>
+
         <div class="flex flex-col gap-2.5 mt-1">
           <button id="btn-restart" class="arcade-btn w-full py-4 rounded-2xl text-base uppercase tracking-widest">
             GO AGAIN ↻
@@ -508,6 +525,19 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- LEADERBOARD SCREEN -->
+    <section id="screen-leaderboard" class="hidden absolute inset-0 z-50 bg-slate-950/94 backdrop-blur-md flex flex-col p-5 pt-6 pb-7">
+      <div class="flex items-center justify-between mb-3 shrink-0">
+        <div>
+          <h2 class="font-display text-xl font-black text-white tracking-wide">LEADERBOARD</h2>
+          <p id="lb-status" class="text-[11px] text-slate-400">Top 20 drivers</p>
+        </div>
+        <button id="btn-close-leaderboard" aria-label="Close" class="hud-pill w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg active:scale-90 transition">✕</button>
+      </div>
+      <div id="lb-list" class="flex-1 overflow-y-auto flex flex-col gap-1.5 pr-1" style="touch-action: pan-y;"></div>
+      <button id="lb-refresh" class="mt-3 shrink-0 py-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 font-display text-xs font-bold text-cyan-300 active:scale-95 transition">REFRESH ↻</button>
     </section>
 
     <div id="toast-msg" class="hidden absolute top-20 left-1/2 -translate-x-1/2 z-50 hud-pill px-4 py-2 rounded-full text-xs font-display font-bold text-cyan-300 border border-cyan-400/40 shadow-lg whitespace-nowrap">
@@ -1996,6 +2026,7 @@
 
       checkLifetimeGoals();
       StorageManager.save();
+      if (window.GeetechLB) window.GeetechLB.onGameOver(finalScore, Math.floor(GameState.distance));
 
       document.getElementById('over-score').textContent = finalScore.toLocaleString();
       document.getElementById('over-best').textContent = StorageManager.data.highScore.toLocaleString();
@@ -2121,7 +2152,7 @@
     }
 
     function showScreen(screenName) {
-      const screens = ['screen-start', 'screen-garage', 'screen-pause', 'screen-gameover', 'screen-missions', 'screen-daily'];
+      const screens = ['screen-start', 'screen-garage', 'screen-pause', 'screen-gameover', 'screen-missions', 'screen-daily', 'screen-leaderboard'];
       screens.forEach(id => document.getElementById(id).classList.add('hidden'));
 
       const isPlaying = screenName === 'PLAYING';
@@ -2135,6 +2166,7 @@
       if (screenName === 'GARAGE') document.getElementById('screen-garage').classList.remove('hidden');
       if (screenName === 'MISSIONS') { renderMissionsScreen('run'); document.getElementById('screen-missions').classList.remove('hidden'); }
       if (screenName === 'DAILY') { updateDailyScreen(); document.getElementById('screen-daily').classList.remove('hidden'); }
+      if (screenName === 'LEADERBOARD') { document.getElementById('screen-leaderboard').classList.remove('hidden'); if (window.GeetechLB) window.GeetechLB.refresh(); }
       if (screenName === 'PAUSED') document.getElementById('screen-pause').classList.remove('hidden');
       if (screenName === 'GAMEOVER') document.getElementById('screen-gameover').classList.remove('hidden');
     }
@@ -2704,6 +2736,142 @@
       showScreen('MENU');
       requestAnimationFrame(animate);
     });
+  </script>
+
+  <!-- ==========================================
+       FIREBASE LEADERBOARD (needs http(s) hosting)
+       ========================================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import {
+      getFirestore, collection, doc, setDoc, getDocs,
+      query, orderBy, limit, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA33rW8MvjmM1BsxG2WZ3ToIYMcYYKWe4M",
+      authDomain: "geetech-drive.firebaseapp.com",
+      projectId: "geetech-drive",
+      storageBucket: "geetech-drive.firebasestorage.app",
+      messagingSenderId: "733714005640",
+      appId: "1:733714005640:web:5d1b70332ab2246965a93d",
+      measurementId: "G-BXR07RLV05"
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const store = {
+      get(k, d = '') { try { return localStorage.getItem(k) ?? d; } catch (e) { return d; } },
+      set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+    };
+
+    let db = null;
+    try { db = getFirestore(initializeApp(firebaseConfig)); }
+    catch (e) { console.warn('Firebase init failed:', e); }
+
+    // One anonymous player id per device = one leaderboard row per player
+    let pid = store.get('geetech_lb_pid');
+    if (!pid) {
+      pid = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2)).replace(/[^a-zA-Z0-9-]/g, '');
+      store.set('geetech_lb_pid', pid);
+    }
+
+    const cleanName = (s) => String(s || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 14);
+    const postedBest = () => Number(store.get('geetech_lb_best', '0')) || 0;
+    let lastRun = { score: 0, distance: 0 };
+
+    async function post(name, score, distance) {
+      if (!db) throw new Error('offline');
+      await setDoc(doc(db, 'scores', pid), {
+        name, score, distance, updatedAt: serverTimestamp()
+      });
+      store.set('geetech_lb_name', name);
+      store.set('geetech_lb_best', String(score));
+    }
+
+    async function refresh() {
+      const list = $('lb-list'), status = $('lb-status');
+      list.textContent = '';
+      status.textContent = 'Loading…';
+      if (!db) { status.textContent = 'Leaderboard offline'; return; }
+      try {
+        const snap = await getDocs(query(collection(db, 'scores'), orderBy('score', 'desc'), limit(20)));
+        if (snap.empty) { status.textContent = 'No scores yet. Be the first!'; return; }
+        status.textContent = 'Top 20 drivers';
+        const medals = ['🥇', '🥈', '🥉'];
+        let rank = 0;
+        snap.forEach((d) => {
+          const v = d.data(), mine = d.id === pid;
+          const row = document.createElement('div');
+          row.className = 'flex items-center gap-2 px-3 py-2 rounded-xl border ' +
+            (mine ? 'bg-cyan-500/15 border-cyan-400/60' : 'bg-white/5 border-white/10');
+          const r = document.createElement('div');
+          r.className = 'w-8 text-center font-display text-sm font-black ' + (rank < 3 ? '' : 'text-slate-400');
+          r.textContent = rank < 3 ? medals[rank] : String(rank + 1);
+          const n = document.createElement('div');
+          n.className = 'flex-1 min-w-0 truncate font-display text-sm font-bold ' + (mine ? 'text-cyan-300' : 'text-white');
+          n.textContent = (v.name || 'Driver') + (mine ? ' (you)' : '');
+          const s = document.createElement('div');
+          s.className = 'font-display text-sm font-black text-amber-300';
+          s.textContent = Number(v.score || 0).toLocaleString();
+          row.append(r, n, s);
+          list.appendChild(row);
+          rank++;
+        });
+      } catch (e) {
+        console.error('Leaderboard load failed:', e);
+        status.textContent = 'Could not load. Check connection or Firestore rules.';
+      }
+    }
+
+    function setOverStatus(msg) { $('lb-over-status').textContent = msg; }
+
+    async function manualPost() {
+      const name = cleanName($('lb-name-input').value);
+      if (!name) { setOverStatus('Enter a name first.'); return; }
+      const score = Math.max(lastRun.score, postedBest());
+      if (score <= 0) return;
+      const btn = $('btn-lb-post');
+      btn.disabled = true; setOverStatus('Posting…');
+      try {
+        await post(name, score, lastRun.distance);
+        setOverStatus('Posted as ' + name + ' ✓ Best: ' + score.toLocaleString());
+      } catch (e) {
+        console.error('Post failed:', e);
+        setOverStatus('Could not post score. Try again.');
+      }
+      btn.disabled = false;
+    }
+
+    window.GeetechLB = {
+      refresh,
+      async onGameOver(score, distance) {
+        lastRun = { score, distance };
+        const box = $('lb-over-box');
+        if (!db || score <= 0) { box.classList.add('hidden'); return; }
+        box.classList.remove('hidden');
+        const saved = cleanName(store.get('geetech_lb_name'));
+        $('lb-name-input').value = saved;
+        if (saved && score > postedBest()) {
+          setOverStatus('Posting…');
+          try {
+            await post(saved, score, distance);
+            setOverStatus('New personal best posted as ' + saved + ' ✓');
+          } catch (e) {
+            console.error('Auto-post failed:', e);
+            setOverStatus('Could not post score. Tap POST to retry.');
+          }
+        } else if (saved) {
+          setOverStatus('Your leaderboard best is ' + postedBest().toLocaleString() + '.');
+        } else {
+          setOverStatus('Enter a name to join the leaderboard.');
+        }
+      }
+    };
+
+    $('btn-open-leaderboard').addEventListener('click', () => showScreen('LEADERBOARD'));
+    $('btn-close-leaderboard').addEventListener('click', () => showScreen('MENU'));
+    $('lb-refresh').addEventListener('click', refresh);
+    $('btn-lb-post').addEventListener('click', manualPost);
   </script>
 </body>
 </html>
