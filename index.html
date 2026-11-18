@@ -344,7 +344,14 @@
           <span class="text-lg">🏆</span>
         </button>
 
-        <button id="btn-play" class="arcade-btn w-full py-4 rounded-2xl text-lg uppercase tracking-widest flex items-center justify-center gap-2.5 cursor-pointer">
+        <button id="btn-open-stage2" class="hidden hud-pill rounded-2xl py-3 px-4 flex items-center justify-between text-left active:scale-95 transition border border-orange-400/50" onclick="location.href='stage2.html'">
+<div>
+<div class="text-[10px] font-display font-bold text-orange-300">STAGE 2 UNLOCKED</div>
+<div class="text-[9px] text-slate-300">Karoo, Garden Route, Drakensberg &amp; Kruger</div>
+</div>
+<span class="text-lg">🏔️</span>
+</button>
+<button id="btn-play" class="arcade-btn w-full py-4 rounded-2xl text-lg uppercase tracking-widest flex items-center justify-center gap-2.5 cursor-pointer">
           <span>TAP TO GO</span>
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         </button>
@@ -2175,6 +2182,7 @@
     }
 
     function showScreen(screenName) {
+      if (window.stage2Refresh) window.stage2Refresh();
       const screens = ['screen-start', 'screen-garage', 'screen-pause', 'screen-gameover', 'screen-missions', 'screen-daily', 'screen-leaderboard', 'screen-donate'];
       screens.forEach(id => document.getElementById(id).classList.add('hidden'));
 
@@ -2954,6 +2962,13 @@
         window.open(link, '_blank', 'noopener');
       });
     })();
+  </script>
+<script>
+    window.stage2Refresh = () => {
+      const owned = (StorageManager.data.unlockedCars || []).includes('BMW');
+      document.getElementById('btn-open-stage2').classList.toggle('hidden', !owned);
+    };
+    window.stage2Refresh();
   </script>
 </body>
 </html>
