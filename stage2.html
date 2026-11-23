@@ -278,12 +278,12 @@
       <div id="checkpoint-hud" class="hidden hud-pill rounded-2xl px-3 py-1.5 flex items-center justify-between gap-2.5 border border-orange-400/35">
         <div class="flex items-center gap-1.5 shrink-0">
           <span class="text-sm">⏱️</span>
-          <span id="hud-timer" class="font-display text-sm font-black text-amber-300">45.0s</span>
+          <span id="hud-timer" class="font-display text-sm font-black text-amber-300">34.0s</span>
         </div>
         <div class="flex-1 min-w-0 flex flex-col gap-1">
           <div class="flex items-center justify-between text-[9px] font-display font-bold">
             <span id="hud-cp-dest" class="text-orange-300 truncate">NEXT: GARDEN ROUTE</span>
-            <span id="hud-cp-req" class="text-slate-300 shrink-0">900m / 3,500 PTS</span>
+            <span id="hud-cp-req" class="text-slate-300 shrink-0">1050m / 4,800 PTS</span>
           </div>
           <div class="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden">
             <div id="hud-cp-bar" class="h-full bg-gradient-to-r from-orange-400 to-amber-300 transition-all duration-100" style="width:0%"></div>
@@ -412,7 +412,7 @@
             "Hawu bhuti, awunayo i-cooldrink?"
           </h2>
           <p id="police-subtext" class="text-xs text-slate-300 mt-1.5 leading-relaxed">
-            Officer pulled you over! Hand over a cold drink from your boot or face a <span class="text-rose-400 font-bold">R100 fine</span> and <span class="text-rose-400 font-bold">car impoundment</span>.
+            Officer pulled you over! Hand over a cold drink from your boot or face a <span class="text-rose-400 font-bold">R1,500 fine</span> and <span class="text-rose-400 font-bold">car impoundment</span>.
           </p>
         </div>
 
@@ -426,7 +426,7 @@
             🥤 GIVE COOLDRINK (1 LEFT)
           </button>
           <button id="btn-refuse-cooldrink" class="w-full py-3.5 rounded-2xl bg-rose-600/90 hover:bg-rose-600 border border-rose-400/50 text-white font-display text-xs font-black uppercase tracking-wider active:scale-95 transition">
-            NO COOLDRINK (R100 FINE + IMPOUND)
+            NO COOLDRINK (R1,500 FINE + IMPOUND)
           </button>
         </div>
       </div>
@@ -1840,6 +1840,7 @@
     const particles = [];
     const obstaclesList = [];
     const powerUpsList = [];
+    const pedestriansList = [];
     const TRAFFIC_COLORS = [0xff2a5f, 0xff9f1c, 0x3a86ff, 0x8338ec, 0xe2e8f0];
 
     function spawnTrafficVehicle(laneIndex, zPos, type = 'CAR') {
@@ -1943,7 +1944,7 @@
         if (laneIndex < LANES.length - 1) possibleTargets.push(laneIndex + 1);
         const targetLane = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
 
-        trafficCars.push({ mesh: group, type: 'TAXI', lane: laneIndex, targetLane, currentX: LANES[laneIndex], length, speed: 18 + Math.random() * 7, nearMissed: false, weaveTriggered: false, honked: false, hazardL, hazardR });
+        trafficCars.push({ mesh: group, type: 'TAXI', lane: laneIndex, targetLane, currentX: LANES[laneIndex], length, speed: 20 + Math.random() * 8 + GameState.sectorIndex * 3.5, nearMissed: false, weaveTriggered: false, honked: false, hazardL, hazardR });
         return;
       }
 
@@ -1963,7 +1964,7 @@
         targetLane: laneIndex,
         currentX: LANES[laneIndex],
         length,
-        speed: isTruck ? 14 + Math.random() * 5 : 22 + Math.random() * 13,
+        speed: (isTruck ? 15 + Math.random() * 6 : 24 + Math.random() * 14) + GameState.sectorIndex * 3.5,
         nearMissed: false,
         overtakeCooldown: 1.5 + Math.random() * 2.0
       });
@@ -2079,16 +2080,17 @@
       spawnTimer: 0,
       coinSpawnTimer: 0,
       overtakerTimer: 5.5,
+      pedestrianTimer: 5.0,
       nextCooldrinkDist: 520,
       policeImmunityTimer: 0,
       activePoliceIndex: -1,
       shakeIntensity: 0,
       sectorIndex: 0,
       // Checkpoint Countdown Timer
-      timeLeft: 45.0,
+      timeLeft: 34.0,
       checkpointStartDist: 0,
-      checkpointTargetDist: 900,
-      checkpointTargetScore: 3500,
+      checkpointTargetDist: 1050,
+      checkpointTargetScore: 4800,
       isStormActive: false,
       lightningTimer: 0,
       isBlackout: false,
@@ -2124,6 +2126,67 @@
       obstaclesList.forEach(o => scene.remove(o.mesh)); obstaclesList.length = 0;
       powerUpsList.forEach(p => scene.remove(p.mesh)); powerUpsList.length = 0;
       particles.forEach(p => scene.remove(p.mesh)); particles.length = 0;
+      pedestriansList.forEach(p => scene.remove(p.mesh)); pedestriansList.length = 0;
+    }
+
+    function createPedestrianMesh() {
+      const group = new THREE.Group();
+      const skinColors = [0x8d5524, 0xc68642, 0x5c3818, 0xe0ac69];
+      const shirtColors = [0xef4444, 0x3b82f6, 0xfacc15, 0x10b981, 0xf97316, 0xffffff];
+      const pantsColors = [0x1e293b, 0x111827, 0x334155, 0x1d4ed8];
+
+      const skinMat = new THREE.MeshStandardMaterial({ color: skinColors[Math.floor(Math.random() * skinColors.length)], roughness: 0.7 });
+      const shirtMat = new THREE.MeshStandardMaterial({ color: shirtColors[Math.floor(Math.random() * shirtColors.length)], roughness: 0.6 });
+      const pantsMat = new THREE.MeshStandardMaterial({ color: pantsColors[Math.floor(Math.random() * pantsColors.length)], roughness: 0.8 });
+
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.85, 0.32), shirtMat);
+      torso.position.y = 1.15;
+      torso.castShadow = true;
+      group.add(torso);
+
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 10), skinMat);
+      head.position.y = 1.78;
+      group.add(head);
+
+      const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.75, 0.22), pantsMat);
+      leftLeg.position.set(-0.14, 0.38, 0);
+      const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.75, 0.22), pantsMat);
+      rightLeg.position.set(0.14, 0.38, 0);
+      group.add(leftLeg, rightLeg);
+
+      const warnRing = new THREE.Mesh(
+        new THREE.RingGeometry(0.45, 0.68, 20),
+        new THREE.MeshBasicMaterial({ color: 0xfbbf24, side: THREE.DoubleSide, transparent: true, opacity: 0.75 })
+      );
+      warnRing.rotation.x = -Math.PI / 2;
+      warnRing.position.y = 0.04;
+      group.add(warnRing);
+
+      return { group, leftLeg, rightLeg, warnRing };
+    }
+
+    function spawnCrossingPedestrian(zPos = -160) {
+      const fromLeft = Math.random() < 0.5;
+      const startX = fromLeft ? -11.5 : 11.5;
+      const dir = fromLeft ? 1 : -1;
+      const walkSpeed = (4.2 + Math.random() * 2.2) + GameState.sectorIndex * 0.65;
+
+      const { group, leftLeg, rightLeg, warnRing } = createPedestrianMesh();
+      group.position.set(startX, 0, zPos);
+      group.rotation.y = fromLeft ? Math.PI / 2 : -Math.PI / 2;
+      scene.add(group);
+
+      pedestriansList.push({
+        mesh: group,
+        leftLeg,
+        rightLeg,
+        warnRing,
+        x: startX,
+        dir,
+        speed: walkSpeed,
+        stridePhase: Math.random() * Math.PI * 2,
+        nearMissed: false
+      });
     }
 
     function applySectorTheme(idx, announce = false) {
@@ -2163,7 +2226,7 @@
 
     function startBlackout() {
       GameState.isBlackout = true;
-      GameState.blackoutEndDist = GameState.distance + 400;
+      GameState.blackoutEndDist = GameState.distance + 480 + GameState.sectorIndex * 80;
       document.getElementById('blackout-badge').classList.remove('hidden');
       sound.playBlackoutDown();
       sound.setBlackoutDucking(true);
@@ -2177,7 +2240,7 @@
 
     function endBlackout(awardBonus = true) {
       GameState.isBlackout = false;
-      GameState.nextBlackoutDist = GameState.distance + 650 + Math.random() * 200;
+      GameState.nextBlackoutDist = GameState.distance + Math.max(420, 620 - GameState.sectorIndex * 60) + Math.random() * 180;
       document.getElementById('blackout-badge').classList.add('hidden');
       sound.setBlackoutDucking(false);
       if (awardBonus) {
@@ -2192,7 +2255,7 @@
     function startNewGame() {
       const carSpec = getSelectedCarSpec();
       if (isCarImpounded(carSpec.id)) {
-        showToast('🔒 CAR IMPOUNDED! PAY R100 BAIL IN GARAGE');
+        showToast('🔒 CAR IMPOUNDED! PAY R1,500 BAIL IN GARAGE');
         renderGarage();
         showScreen('GARAGE');
         return;
@@ -2207,17 +2270,17 @@
       GameState.currentLane = 2; GameState.playerX = 0; GameState.score = 0; GameState.distance = 0;
       GameState.runCoins = 0; GameState.nearMissCount = 0; GameState.combo = 1; GameState.comboTimer = 0;
       GameState.nitro = 100; GameState.isNitroActive = false; GameState.baseSpeed = 54; GameState.currentSpeed = 54;
-      GameState.spawnTimer = 0.6; GameState.coinSpawnTimer = 1.2; GameState.overtakerTimer = 5.0;
+      GameState.spawnTimer = 0.6; GameState.coinSpawnTimer = 1.2; GameState.overtakerTimer = 5.0; GameState.pedestrianTimer = 4.5;
       GameState.nextCooldrinkDist = 480 + Math.random() * 250;
       GameState.policeImmunityTimer = 0;
       GameState.activePoliceIndex = -1;
       GameState.shakeIntensity = 0; GameState.sectorIndex = 0;
 
       // Initialize Checkpoint Countdown Timer
-      GameState.timeLeft = 45.0;
+      GameState.timeLeft = 34.0;
       GameState.checkpointStartDist = 0;
-      GameState.checkpointTargetDist = 900;
-      GameState.checkpointTargetScore = 3500;
+      GameState.checkpointTargetDist = 1050;
+      GameState.checkpointTargetScore = 4800;
 
       GameState.isStormActive = false; GameState.lightningTimer = 4.0;
       GameState.isBlackout = false; GameState.blackoutFactor = 0; GameState.nextBlackoutDist = 420; GameState.blackoutEndDist = 0;
@@ -2256,10 +2319,10 @@
       if (drinks > 0) {
         giveBtn.classList.remove('hidden');
         giveBtn.textContent = `🥤 GIVE COOLDRINK (${drinks} IN BOOT)`;
-        refuseBtn.textContent = 'REFUSE (R100 FINE + IMPOUND)';
+        refuseBtn.textContent = 'REFUSE (R1,500 FINE + IMPOUND)';
       } else {
         giveBtn.classList.add('hidden');
-        refuseBtn.textContent = 'NO COOLDRINK... (R100 FINE + IMPOUND)';
+        refuseBtn.textContent = 'NO COOLDRINK... (R1,500 FINE + IMPOUND)';
       }
 
       document.getElementById('screen-police').classList.remove('hidden');
@@ -2292,13 +2355,13 @@
 
       // Fine R100
       const totalAvailable = StorageManager.data.coins + GameState.runCoins;
-      const newTotal = Math.max(0, totalAvailable - 100);
+      const newTotal = Math.max(0, totalAvailable - 1500);
       StorageManager.data.coins = newTotal;
       GameState.runCoins = 0;
 
       // Impound active car (keep starter VW1 KWID immune so player is never soft-locked)
       const currentCarId = StorageManager.data.selectedCar;
-      let impoundedText = 'Fined R100 by Metro Police!';
+      let impoundedText = 'Fined R1,500 by Metro Police!';
       if (currentCarId !== 'VW1') {
         if (!StorageManager.data.impoundedCars.includes(currentCarId)) {
           StorageManager.data.impoundedCars.push(currentCarId);
@@ -2306,9 +2369,9 @@
         // Automatically switch active selection to an un-impounded unlocked car
         const fallbackCar = StorageManager.data.unlockedCars.find(id => !StorageManager.data.impoundedCars.includes(id)) || 'VW1';
         StorageManager.data.selectedCar = fallbackCar;
-        impoundedText = 'Fined R100 & your car was IMPOUNDED! Pay R100 bail in Garage.';
+        impoundedText = 'Fined R100 & your car was IMPOUNDED! Pay R1,500 bail in Garage.';
       } else {
-        impoundedText = 'Fined R100! (Starter KWID spared from impound)';
+        impoundedText = 'Fined R1,500! (Starter KWID spared from impound)';
       }
 
       StorageManager.save();
@@ -2717,7 +2780,7 @@
         }).join('');
 
         let action = '';
-        if (impounded) action = `<button data-bail="${car.id}" class="px-3 py-2 rounded-xl bg-rose-500 text-white font-display text-[10px] font-black shadow">🔒 BAIL · R100</button>`;
+        if (impounded) action = `<button data-bail="${car.id}" class="px-3 py-2 rounded-xl bg-rose-500 text-white font-display text-[10px] font-black shadow">🔒 BAIL · R1,500</button>`;
         else if (isSelected) action = `<span class="px-3 py-2 rounded-xl bg-cyan-400/20 border border-cyan-400 text-cyan-300 font-display text-[10px] font-bold">EQUIPPED</span>`;
         else if (isUnlocked) action = `<button data-select="${car.id}" class="px-3 py-2 rounded-xl bg-white/15 text-white font-display text-[10px] font-bold">SELECT</button>`;
         else if (!challengeMet) action = `<span class="text-[9px] text-amber-300 font-bold text-right">BEST ${progress}m / ${car.unlockDistance}m</span>`;
@@ -2738,8 +2801,8 @@
 
       list.querySelectorAll('[data-bail]').forEach(btn => btn.addEventListener('click', () => {
         const carId = btn.dataset.bail;
-        if (StorageManager.data.coins >= 100) {
-          StorageManager.data.coins -= 100;
+        if (StorageManager.data.coins >= 1500) {
+          StorageManager.data.coins -= 1500;
           StorageManager.data.impoundedCars = StorageManager.data.impoundedCars.filter(id => id !== carId);
           StorageManager.data.selectedCar = carId;
           StorageManager.save();
@@ -2749,7 +2812,7 @@
           sound.playCoin();
           showToast('VEHICLE RELEASED FROM IMPOUND!');
         } else {
-          showToast(`NEED ${100 - StorageManager.data.coins} MORE RANDS FOR BAIL`);
+          showToast(`NEED ${1500 - StorageManager.data.coins} MORE RANDS FOR BAIL`);
         }
       }));
 
@@ -2869,13 +2932,14 @@
           GameState.policeImmunityTimer = Math.max(0, GameState.policeImmunityTimer - dt);
         }
 
-        GameState.baseSpeed = Math.min(96 * carSpec.speedMultiplier, (54 + GameState.distance * 0.012) * carSpec.speedMultiplier);
+        const sectorBoost = GameState.sectorIndex * 5.5;
+        GameState.baseSpeed = Math.min(112 * carSpec.speedMultiplier, (54 + sectorBoost + GameState.distance * 0.014) * carSpec.speedMultiplier);
 
         if (GameState.isNitroActive && GameState.nitro > 0) {
-          GameState.nitro = Math.max(0, GameState.nitro - (34 / carSpec.nitroEfficiency) * dt);
+          GameState.nitro = Math.max(0, GameState.nitro - (29 / carSpec.nitroEfficiency) * dt);
           if (GameState.nitro <= 0) setNitro(false);
         } else {
-          GameState.nitro = Math.min(100, GameState.nitro + 5.5 * dt);
+          GameState.nitro = Math.min(100, GameState.nitro + 2.8 * dt);
         }
 
         const targetSpeed = GameState.isNitroActive ? GameState.baseSpeed * 1.48 : GameState.baseSpeed;
@@ -2915,21 +2979,23 @@
 
         const stepDist = GameState.currentSpeed * dt;
         GameState.distance += stepDist * 0.45;
-        GameState.score += stepDist * 0.85 * GameState.combo * (GameState.isNitroActive ? 1.5 : 1);
+        GameState.score += stepDist * 0.62 * GameState.combo * (GameState.isNitroActive ? 1.65 : 1);
 
         checkMissionProgress('distance', Math.floor(stepDist * 0.45));
 
         // CHECKPOINT REACHED CHECK (Distance AND Score)
         if (GameState.distance >= GameState.checkpointTargetDist && GameState.score >= GameState.checkpointTargetScore) {
           GameState.sectorIndex += 1;
-          GameState.timeLeft = Math.min(65, GameState.timeLeft + 25);
-          GameState.runCoins += 50;
+          const timeBonus = Math.max(13, 19 - GameState.sectorIndex);
+          GameState.timeLeft = Math.min(45, GameState.timeLeft + timeBonus);
+          const cashBonus = 75 + GameState.sectorIndex * 25;
+          GameState.runCoins += cashBonus;
           GameState.checkpointStartDist = GameState.checkpointTargetDist;
-          GameState.checkpointTargetDist += 1000 + GameState.sectorIndex * 200;
-          GameState.checkpointTargetScore += 4500 + GameState.sectorIndex * 1500;
+          GameState.checkpointTargetDist += 1250 + GameState.sectorIndex * 320;
+          GameState.checkpointTargetScore += 6500 + GameState.sectorIndex * 2600;
           sound.playPowerRestored();
           applySectorTheme(GameState.sectorIndex, true);
-          setTimeout(() => spawnPopup('⏱️ CHECKPOINT CLEARED! +25s & +R50', '#34d399', '1.15rem'), 400);
+          setTimeout(() => spawnPopup(`⏱️ SECTOR ${GameState.sectorIndex + 1}! +${timeBonus}s & +R${cashBonus}`, '#34d399', '1.15rem'), 400);
         }
 
         if (!GameState.isBlackout && GameState.distance >= GameState.nextBlackoutDist) startBlackout();
@@ -2989,20 +3055,24 @@
           }
         }
 
-        // SPAWN REAR AI OVERTAKERS
+        // SPAWN REAR AI OVERTAKERS (More frequent after Sector 1)
         GameState.overtakerTimer -= dt;
         if (GameState.overtakerTimer <= 0) {
-          GameState.overtakerTimer = 6.5 + Math.random() * 5.0;
+          const minOvertakeGap = Math.max(2.6, 5.2 - GameState.sectorIndex * 0.75);
+          GameState.overtakerTimer = minOvertakeGap + Math.random() * 3.0;
           const openLanes = [0, 1, 2, 3, 4].filter(l => l !== GameState.currentLane);
           const chosenLane = openLanes[Math.floor(Math.random() * openLanes.length)];
           spawnTrafficVehicle(chosenLane, 18, 'OVERTAKER');
         }
 
-        // SPAWN FORWARD TRAFFIC, POLICE & OBSTACLES
+        // SPAWN FORWARD TRAFFIC, POLICE & OBSTACLES (Escalates heavily after Sector 1)
         GameState.spawnTimer -= dt;
         if (GameState.spawnTimer <= 0) {
-          const dist = GameState.distance, stage = dist < 400 ? 1 : dist < 1000 ? 2 : dist < 2000 ? 3 : 4;
-          GameState.spawnTimer = Math.max(0.56, [0, 1.18, 0.98, 0.78, 0.64][stage]);
+          const dist = GameState.distance;
+          const sec = GameState.sectorIndex;
+          const stage = Math.min(4, (dist < 350 ? 1 : dist < 900 ? 2 : dist < 1800 ? 3 : 4) + (sec > 0 ? 1 : 0));
+          const baseInterval = [0, 1.02, 0.82, 0.62, 0.46][stage];
+          GameState.spawnTimer = Math.max(0.38, baseInterval - sec * 0.04);
 
           const laneIndices = [0, 1, 2, 3, 4];
           for (let j = laneIndices.length - 1; j > 0; j--) {
@@ -3010,16 +3080,23 @@
             [laneIndices[j], laneIndices[k]] = [laneIndices[k], laneIndices[j]];
           }
 
-          let carsToSpawn = dist > 300 && Math.random() < 0.48 ? 2 : 1;
+          let carsToSpawn = 1;
+          if (sec >= 2 && Math.random() < 0.42) carsToSpawn = 3;
+          else if ((dist > 220 || sec >= 1) && Math.random() < (0.55 + sec * 0.1)) carsToSpawn = 2;
+
           for (let i = 0; i < carsToSpawn; i++) {
             const r = Math.random();
             let vType = 'CAR';
-            if (dist > 180 && r < 0.18 && GameState.policeImmunityTimer <= 0) vType = 'POLICE';
-            else if (r < 0.44) vType = 'TAXI';
-            else if (r < 0.56) vType = 'TRUCK';
-            spawnTrafficVehicle(laneIndices[i], -165 - i * 12, vType);
+            const policeChance = Math.min(0.28, 0.18 + sec * 0.03);
+            if (dist > 150 && r < policeChance && GameState.policeImmunityTimer <= 0) vType = 'POLICE';
+            else if (r < 0.48 + sec * 0.04) vType = 'TAXI';
+            else if (r < 0.62) vType = 'TRUCK';
+            spawnTrafficVehicle(laneIndices[i], -165 - i * 11, vType);
           }
-          if (dist > 150 && Math.random() < 0.35) spawnObstacle(laneIndices[carsToSpawn], -165 - carsToSpawn * 11 - 8);
+          const obsChance = Math.min(0.65, 0.38 + sec * 0.1);
+          if (dist > 120 && Math.random() < obsChance && carsToSpawn < 4) {
+            spawnObstacle(laneIndices[carsToSpawn], -165 - carsToSpawn * 10 - 8);
+          }
           if (dist > 90 && Math.random() < 0.16) spawnPowerUp(laneIndices[Math.min(carsToSpawn + 1, 4)], -165 - 6);
         }
 
@@ -3077,7 +3154,7 @@
           }
           if (t.type === 'TAXI' && t.weaveTriggered) {
             const destX = LANES[t.targetLane], lDiff = destX - t.currentX;
-            t.currentX += lDiff * Math.min(1, dt * 6.5);
+            t.currentX += lDiff * Math.min(1, dt * (6.8 + GameState.sectorIndex * 1.4));
             t.mesh.position.x = t.currentX;
           }
 
@@ -3212,6 +3289,53 @@
             } else { triggerCrash(); break; }
           }
           if (obs.mesh.position.z > 20) { scene.remove(obs.mesh); obstaclesList.splice(i, 1); }
+        }
+
+        GameState.pedestrianTimer -= dt;
+        if (GameState.pedestrianTimer <= 0 && GameState.distance > 140) {
+          GameState.pedestrianTimer = Math.max(2.8, 6.2 - GameState.sectorIndex * 0.75) + Math.random() * 2.5;
+          spawnCrossingPedestrian(-160);
+        }
+
+        for (let i = pedestriansList.length - 1; i >= 0; i--) {
+          const p = pedestriansList[i];
+          p.mesh.position.z += GameState.currentSpeed * dt;
+          p.x += p.dir * p.speed * dt;
+          p.mesh.position.x = p.x;
+
+          p.stridePhase += dt * p.speed * 3.2;
+          p.leftLeg.rotation.x = Math.sin(p.stridePhase) * 0.65;
+          p.rightLeg.rotation.x = -Math.sin(p.stridePhase) * 0.65;
+          p.warnRing.material.opacity = 0.45 + Math.abs(Math.sin(p.stridePhase)) * 0.45;
+
+          const dz = Math.abs(p.mesh.position.z - playerCar.position.z);
+          const dx = Math.abs(p.x - playerCar.position.x);
+
+          if (dz < 1.35 && dx < 1.05) {
+            if (GameState.hasShield) {
+              GameState.hasShield = false;
+              sound.playCrash();
+              scene.remove(p.mesh);
+              pedestriansList.splice(i, 1);
+              continue;
+            }
+            scene.remove(p.mesh);
+            pedestriansList.splice(i, 1);
+            triggerCrash('PEDESTRIAN HIT!', 'Watch the road crossing!');
+            break;
+          }
+
+          if (!p.nearMissed && p.mesh.position.z > playerCar.position.z + 1.5 && dx < 2.6) {
+            p.nearMissed = true;
+            GameState.score += 250 * GameState.combo;
+            GameState.nitro = Math.min(100, GameState.nitro + 6);
+            spawnPopup('🏃 PEDESTRIAN DODGED! +250', '#fbbf24', '0.95rem');
+          }
+
+          if (p.mesh.position.z > 24 || Math.abs(p.x) > 14.5) {
+            scene.remove(p.mesh);
+            pedestriansList.splice(i, 1);
+          }
         }
 
         for (let i = powerUpsList.length - 1; i >= 0; i--) {
